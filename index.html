@@ -189,18 +189,31 @@
             });
         }
 
-        // Logic: Relative Time in Japanese
+        // Logic Update: Advanced Time Formatting in Japanese
         function formatRelativeTime(ms) {
             const diff = Date.now() - ms;
             const abs = Math.abs(diff);
-            const mins = Math.floor(abs / 60000);
-            const hours = Math.floor(abs / 3600000);
-            const days = Math.floor(abs / 86400000);
+            const totalDays = Math.floor(abs / 86400000);
             const suffix = diff >= 0 ? "前" : "後";
 
-            if (days > 0) return days + "日" + suffix;
-            if (hours > 0) return hours + "時間" + suffix;
-            if (mins > 0) return mins + "分" + suffix;
+            if (totalDays >= 365) {
+                const y = Math.floor(totalDays / 365);
+                const m = Math.floor((totalDays % 365) / 30.44);
+                return `${y}年${m}ヶ月${suffix}`;
+            }
+            if (totalDays >= 30) {
+                const m = Math.floor(totalDays / 30.44);
+                const d = Math.floor(totalDays % 30.44);
+                return `${m}ヶ月${d}日${suffix}`;
+            }
+            if (totalDays >= 1) return `${totalDays}日${suffix}`;
+            
+            const hours = Math.floor(abs / 3600000);
+            if (hours >= 1) return `${hours}時間${suffix}`;
+            
+            const mins = Math.floor(abs / 60000);
+            if (mins >= 1) return `${mins}分${suffix}`;
+            
             return "たった今";
         }
 
@@ -373,7 +386,6 @@
                 if (timer.isExpanded && timer.logs.length > 0) {
                     timeline = `<div class="px-6 pb-6 pt-2 space-y-6 relative"><div class="timeline-line"></div>${timer.logs.map((log, idx) => {
                         const rel = formatRelativeTime(log.timestamp);
-                        // Logic: Calculate interval from previous record (idx+1 is the older one)
                         const interval = idx < timer.logs.length - 1 ? calculateInterval(log.timestamp, timer.logs[idx+1].timestamp) : null;
                         return `
                             <div class="relative pl-8 group">
