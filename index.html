@@ -58,6 +58,10 @@
                     <button onclick="exportJSON()" class="p-3 bg-white border border-slate-200 text-slate-500 rounded-xl shadow-sm hover:bg-slate-50 active:scale-95 transition-all" title="物理バックアップ">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                     </button>
+                    <label class="p-3 bg-white border border-slate-200 text-slate-500 rounded-xl shadow-sm hover:bg-slate-50 active:scale-95 transition-all cursor-pointer" title="JSON復元">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l4 4m-4-4h12"/></svg>
+                        <input type="file" class="hidden" accept=".json" onchange="importJSON(event)">
+                    </label>
                 </div>
 
                 <div id="categoryTabs" class="flex gap-2 overflow-x-auto pb-4 no-scrollbar"></div>
@@ -151,6 +155,8 @@
   measurementId: "G-3W7X6BDZRG"
 };
 
+        let db, auth, user, currentAppId;
+
         function resolveFirebaseConfig() {
             if (typeof __firebase_config !== 'undefined' && __firebase_config) return JSON.parse(__firebase_config);
             if (firebaseConfig && firebaseConfig.apiKey) return firebaseConfig;
@@ -163,14 +169,17 @@
         if (!config) {
             document.getElementById('setupWizard').classList.remove('hidden');
         } else {
+            initAppLogic(config);
+        }
+
+        function initAppLogic(config) {
             const app = initializeApp(config);
-            const auth = getAuth(app);
-            const db = getFirestore(app);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            currentAppId = typeof __app_id !== 'undefined' ? __app_id : 'since-timer-cloud';
             const provider = new GoogleAuthProvider();
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'since-timer-cloud';
 
             let data = [];
-            let user = null;
             let selectedCategory = 'すべて';
             let currentEditingTimerId = null;
             let currentEditingLogId = null;
@@ -198,14 +207,16 @@
             window.handleLogout = () => { if(confirm("ログアウトしますか？")) signOut(auth); };
 
             function setupRealtimeSync() {
-                const q = query(collection(db, 'artifacts', appId, 'users', user.uid, 'timers'));
+                const q = query(collection(db, 'artifacts', currentAppId, 'users', user.uid, 'timers'));
                 onSnapshot(q, (snapshot) => {
                     data = snapshot.docs.map(doc => ({ docId: doc.id, ...doc.data() }));
                     renderCategories(); render();
                 }, (err) => { document.getElementById('syncStatus').innerText = "Access Denied (Check Rules)"; });
             }
 
+            // --- 強化版：CSVインポート ---
             window.importSpreadsheetCSV = async (e) => {
+                if (!user) return alert("ログインが必要です。");
                 const file = e.target.files[0];
                 if (!file) return;
                 const reader = new FileReader();
@@ -213,30 +224,56 @@
                     const text = ev.target.result;
                     const lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
                     let importCount = 0;
-                    for (const line of lines) {
-                        const cols = line.split(",").map(c => c.trim().replace(/^"|"$/g, ''));
-                        if (cols.length < 3) continue;
-                        const category = cols[0] || "未分類";
-                        const title = cols[1];
-                        const dateStr = cols[2];
-                        const timestamp = new Date(dateStr).getTime();
-                        if (!title || isNaN(timestamp)) continue;
-                        let timer = data.find(t => t.title === title && t.category === category);
-                        if (timer) {
-                            if (!timer.logs.some(l => Math.abs(l.timestamp - timestamp) < 1000)) {
-                                timer.logs.push({ id: Date.now() + Math.random(), timestamp, memo: cols[3] || "" });
-                                timer.logs.sort((a, b) => b.timestamp - a.timestamp);
-                                await updateDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', timer.id), { logs: timer.logs });
+                    try {
+                        for (const line of lines) {
+                            const cols = line.split(",").map(c => c.trim().replace(/^"|"$/g, ''));
+                            if (cols.length < 3) continue;
+                            const category = cols[0] || "未分類";
+                            const title = cols[1];
+                            const dateStr = cols[2];
+                            const timestamp = new Date(dateStr).getTime();
+                            if (!title || isNaN(timestamp)) continue;
+
+                            let timer = data.find(t => t.title === title && t.category === category);
+                            if (timer) {
+                                if (!timer.logs.some(l => Math.abs(l.timestamp - timestamp) < 1000)) {
+                                    timer.logs.push({ id: Date.now() + Math.random(), timestamp, memo: cols[3] || "" });
+                                    timer.logs.sort((a, b) => b.timestamp - a.timestamp);
+                                    await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', timer.id), { logs: timer.logs });
+                                }
+                            } else {
+                                const newId = (Date.now() + Math.random()).toString();
+                                const newTimer = { id: newId, title, category, isExpanded: true, logs: [{ id: Date.now() + Math.random(), timestamp, memo: cols[3] || "" }] };
+                                await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', newId), newTimer);
+                                data.push(newTimer);
                             }
-                        } else {
-                            const newId = (Date.now() + Math.random()).toString();
-                            const newTimer = { id: newId, title, category, isExpanded: true, logs: [{ id: Date.now() + Math.random(), timestamp, memo: cols[3] || "" }] };
-                            await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', newId), newTimer);
-                            data.push(newTimer);
+                            importCount++;
                         }
-                        importCount++;
+                        alert(`${importCount}件のデータを統合しました。`);
+                    } catch (err) {
+                        alert("インポート中にエラーが発生しました。Firestoreのルール設定を確認してください。");
                     }
-                    alert(`${importCount}件のデータを統合しました。`);
+                };
+                reader.readAsText(file);
+            };
+
+            // --- 強化版：JSON復元 ---
+            window.importJSON = async (e) => {
+                if (!user) return alert("ログインが必要です。");
+                const file = e.target.files[0];
+                if (!file || !confirm("クラウドにある既存データへ追加・統合されます。よろしいですか？")) return;
+                const reader = new FileReader();
+                reader.onload = async (ev) => {
+                    try {
+                        const imported = JSON.parse(ev.target.result);
+                        if (Array.isArray(imported)) {
+                            for (const timer of imported) {
+                                const docId = (timer.id || Date.now() + Math.random()).toString();
+                                await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', docId), timer);
+                            }
+                            alert('JSONデータの復元が完了しました。');
+                        }
+                    } catch (err) { alert('読み込みに失敗しました。ファイル形式を確認してください。'); }
                 };
                 reader.readAsText(file);
             };
@@ -255,6 +292,7 @@
                         document.getElementById('initialDateGroup').style.display = "none";
                         document.getElementById('timerSubmitBtn').setAttribute('onclick', 'updateTimer()');
                     } else {
+                        document.getElementById('timerModalTitle').innerText = "新規タイマー";
                         document.getElementById('newTimerTitle').value = ""; document.getElementById('newTimerCategory').value = "";
                         document.getElementById('newTimerInitialDate').value = ds; document.getElementById('initialDateGroup').style.display = "block";
                         document.getElementById('timerSubmitBtn').setAttribute('onclick', 'createTimer()');
@@ -283,13 +321,13 @@
                 if (!title) return;
                 const nid = Date.now().toString();
                 const timerData = { id: nid, title, category: cat, isExpanded: true, logs: date ? [{ id: Date.now()+1, timestamp: new Date(date).getTime(), memo: document.getElementById('newTimerInitialMemo').value.trim() }] : [] };
-                await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', nid), timerData);
+                await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', nid), timerData);
                 closeModal('timer');
             };
 
             window.updateTimer = async () => {
                 const title = document.getElementById('newTimerTitle').value.trim(), cat = document.getElementById('newTimerCategory').value.trim() || '未分類';
-                await updateDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', currentEditingTimerId.toString()), { title, category: cat });
+                await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', currentEditingTimerId.toString()), { title, category: cat });
                 closeModal('timer');
             };
 
@@ -299,7 +337,7 @@
                 const t = data.find(t => t.id === currentEditingTimerId.toString());
                 if (t) {
                     const logs = [...t.logs, { id: Date.now(), timestamp: new Date(ds).getTime(), memo }].sort((a,b) => b.timestamp - a.timestamp);
-                    await updateDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', t.id), { logs, isExpanded: true });
+                    await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', t.id), { logs: logs, isExpanded: true });
                     closeModal('log');
                 }
             };
@@ -308,31 +346,24 @@
                 const ds = document.getElementById('newLogDate').value, memo = document.getElementById('newLogMemo').value.trim();
                 const t = data.find(t => t.id === currentEditingTimerId.toString());
                 const logs = t.logs.map(l => l.id === currentEditingLogId ? { ...l, timestamp: new Date(ds).getTime(), memo } : l).sort((a,b) => b.timestamp - a.timestamp);
-                await updateDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', t.id), { logs, isExpanded: true });
+                await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', t.id), { logs: logs, isExpanded: true });
                 closeModal('log');
             };
 
-            window.deleteTimer = async (id) => { if(confirm('削除しますか？')) await deleteDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', id.toString())); };
-            window.toggleExpand = async (id) => { const t = data.find(t => t.id === id.toString()); await updateDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', id.toString()), { isExpanded: !t.isExpanded }); };
+            window.deleteTimer = async (id) => { if(confirm('削除しますか？')) await deleteDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id.toString())); };
+            window.toggleExpand = async (id) => { const t = data.find(t => t.id === id.toString()); await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id.toString()), { isExpanded: !t.isExpanded }); };
             window.filterCategory = (cat) => { selectedCategory = cat; renderCategories(); render(); };
 
             window.exportCSV = () => {
                 const header = ["Category", "Title", "LogDate", "LogMemo"];
                 const rows = [];
                 data.forEach(t => {
-                    const category = t.category || "未分類";
-                    if (t.logs.length === 0) {
-                        // 履歴がゼロでもタイマーの存在をエクスポートに含める
-                        rows.push([category, t.title, "-", "-"]);
-                    } else {
-                        t.logs.forEach(l => {
-                            const localDate = new Date(l.timestamp).toLocaleString('ja-JP', {
-                                year: 'numeric', month: '2-digit', day: '2-digit',
-                                hour: '2-digit', minute: '2-digit', second: '2-digit'
-                            }).replace(/\//g, '-');
-                            rows.push([category, t.title, localDate, l.memo || ""]);
-                        });
-                    }
+                    const cat = t.category || "未分類";
+                    if (t.logs.length === 0) rows.push([cat, t.title, "-", "-"]);
+                    else t.logs.forEach(l => {
+                        const localDate = new Date(l.timestamp).toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\//g, '-');
+                        rows.push([cat, t.title, localDate, l.memo || ""]);
+                    });
                 });
                 const csv = "\uFEFF" + [header.join(","), ...rows.map(r => r.map(v => `"${(v||"").toString().replace(/"/g,'""')}"`).join(","))].join("\n");
                 const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `timer_export.csv`; a.click();
@@ -370,10 +401,12 @@
         }
 
         window.saveFirebaseConfig = () => {
-            const i = document.getElementById('configInput').value.trim(), m = i.match(/\{[\s\S]*\}/);
-            if (m) { 
-                let j = m[0].replace(/([{,])\s*([a-zA-Z0-9]+)\s*:/g, '$1"$2":').replace(/:\s*'([^']*)'/g, ':"$1"').replace(/,\s*([}\]])/g, '$1');
-                localStorage.setItem('since_timer_cloud_config', j); location.reload(); 
+            const input = document.getElementById('configInput').value.trim();
+            const match = input.match(/\{[\s\S]*\}/);
+            if (match) { 
+                let json = match[0].replace(/([{,])\s*([a-zA-Z0-9]+)\s*:/g, '$1"$2":').replace(/:\s*'([^']*)'/g, ':"$1"').replace(/,\s*([}\]])/g, '$1');
+                localStorage.setItem('since_timer_cloud_config', json); 
+                location.reload(); 
             }
         };
     </script>
