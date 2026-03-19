@@ -38,7 +38,9 @@
                         <h1 class="text-2xl font-black tracking-tighter text-slate-800">Timeline Since</h1>
                         <p class="text-xs text-slate-500 font-medium italic" id="syncStatus">Syncing...</p>
                     </div>
-                    <button onclick="handleLogout()" class="text-[10px] text-slate-400 hover:text-red-500 underline">ログアウト</button>
+                    <div class="flex flex-col items-end gap-1">
+                        <button onclick="handleLogout()" class="text-[10px] text-slate-400 hover:text-red-500 underline mb-1">ログアウト</button>
+                    </div>
                 </div>
 
                 <div class="flex gap-2 items-center mb-6">
@@ -53,12 +55,14 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                         <input type="file" class="hidden" accept=".csv" onchange="importSpreadsheetCSV(event)">
                     </label>
-                    <button onclick="exportJSON()" class="p-3 bg-white border border-slate-200 text-slate-500 rounded-xl shadow-sm hover:bg-slate-50 active:scale-95 transition-all" title="JSONバックアップ">
+                    <button onclick="exportJSON()" class="p-3 bg-white border border-slate-200 text-slate-500 rounded-xl shadow-sm hover:bg-slate-50 active:scale-95 transition-all" title="物理バックアップ">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                     </button>
                 </div>
+
                 <div id="categoryTabs" class="flex gap-2 overflow-x-auto pb-4 no-scrollbar"></div>
             </header>
+
             <div id="mainContainer" class="space-y-6"></div>
         </div>
     </div>
@@ -70,7 +74,7 @@
             <div class="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-100 mb-6 text-[11px] text-blue-600 text-left leading-relaxed">
                 手順：1.Firebase ConsoleでWebアプリを追加 2.表示された SDK コードをコピー 3.下の枠に貼り付け。
             </div>
-            <textarea id="configInput" placeholder='{"apiKey": "...", ...}' class="w-full h-32 p-4 bg-slate-50 border border-slate-200 rounded-xl font-mono text-[10px] mb-4 outline-none resize-none focus:ring-2 focus:ring-sky-500"></textarea>
+            <textarea id="configInput" placeholder='{"apiKey": "...", "projectId": "...", ...}' class="w-full h-32 p-4 bg-slate-50 border border-slate-200 rounded-xl font-mono text-[10px] mb-4 outline-none resize-none focus:ring-2 focus:ring-sky-500"></textarea>
             <button onclick="saveFirebaseConfig()" class="w-full bg-slate-800 text-white py-4 rounded-xl font-bold shadow-lg active:scale-95 transition">設定を保存して開始</button>
         </div>
     </div>
@@ -247,6 +251,7 @@
                     updateCategoryDatalist();
                     if (id) {
                         const t = data.find(t => t.id === id.toString());
+                        document.getElementById('timerModalTitle').innerText = "タイマーを編集";
                         document.getElementById('newTimerTitle').value = t.title; document.getElementById('newTimerCategory').value = t.category;
                         document.getElementById('initialDateGroup').style.display = "none";
                         document.getElementById('timerSubmitBtn').setAttribute('onclick', 'updateTimer()');
@@ -315,7 +320,13 @@
             window.exportCSV = () => {
                 const header = ["Category", "Title", "LogDate", "LogMemo"];
                 const rows = [];
-                data.forEach(t => t.logs.forEach(l => rows.push([t.category, t.title, new Date(l.timestamp).toISOString(), l.memo])));
+                data.forEach(t => t.logs.forEach(l => {
+                    const localDate = new Date(l.timestamp).toLocaleString('ja-JP', {
+                        year: 'numeric', month: '2-digit', day: '2-digit',
+                        hour: '2-digit', minute: '2-digit', second: '2-digit'
+                    }).replace(/\//g, '-');
+                    rows.push([t.category, t.title, localDate, l.memo]);
+                }));
                 const csv = "\uFEFF" + [header.join(","), ...rows.map(r => r.map(v => `"${(v||"").toString().replace(/"/g,'""')}"`).join(","))].join("\n");
                 const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `timer_export.csv`; a.click();
             };
