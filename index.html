@@ -25,10 +25,11 @@
                 <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                 Googleで開始
             </button>
+            <p class="text-[10px] text-slate-400 mt-6 tracking-widest uppercase italic">Secure Cloud Logic Implemented</p>
         </div>
     </div>
 
-    <!-- Main Container -->
+    <!-- Main App Container -->
     <div id="appRoot" class="hidden">
         <div class="max-w-xl mx-auto px-4 py-6">
             <header class="mb-6">
@@ -37,7 +38,9 @@
                         <h1 class="text-2xl font-black tracking-tighter text-slate-800">Timeline Since</h1>
                         <p class="text-xs text-slate-500 font-medium italic" id="syncStatus">Syncing...</p>
                     </div>
-                    <button onclick="handleLogout()" class="text-[10px] text-slate-400 hover:text-red-500 underline">ログアウト</button>
+                    <div class="flex flex-col items-end gap-1">
+                        <button onclick="handleLogout()" class="text-[10px] text-slate-400 hover:text-red-500 underline mb-1">ログアウト</button>
+                    </div>
                 </div>
 
                 <div class="flex gap-2 items-center mb-6">
@@ -52,7 +55,7 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                         <input type="file" class="hidden" accept=".csv" onchange="importSpreadsheetCSV(event)">
                     </label>
-                    <button onclick="exportJSON()" class="p-3 bg-white border border-slate-200 text-slate-500 rounded-xl shadow-sm hover:bg-slate-50 active:scale-95 transition-all" title="JSONバックアップ">
+                    <button onclick="exportJSON()" class="p-3 bg-white border border-slate-200 text-slate-500 rounded-xl shadow-sm hover:bg-slate-50 active:scale-95 transition-all" title="物理バックアップ">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                     </button>
                 </div>
@@ -69,7 +72,7 @@
             <div class="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-100 mb-6 text-[11px] text-blue-600 text-left leading-relaxed">
                 手順：1.Firebase ConsoleでWebアプリを追加 2.表示された SDK コードをコピー 3.下の枠に貼り付け。
             </div>
-            <textarea id="configInput" placeholder='{"apiKey": "...", ...}' class="w-full h-32 p-4 bg-slate-50 border border-slate-200 rounded-xl font-mono text-[10px] mb-4 outline-none resize-none focus:ring-2 focus:ring-sky-500"></textarea>
+            <textarea id="configInput" placeholder='{"apiKey": "...", "projectId": "...", ...}' class="w-full h-32 p-4 bg-slate-50 border border-slate-200 rounded-xl font-mono text-[10px] mb-4 outline-none resize-none focus:ring-2 focus:ring-sky-500"></textarea>
             <button onclick="saveFirebaseConfig()" class="w-full bg-slate-800 text-white py-4 rounded-xl font-bold shadow-lg active:scale-95 transition">設定を保存して開始</button>
         </div>
     </div>
@@ -128,6 +131,21 @@
         </div>
     </div>
 
+    <!-- Logical Addition: Pure UI Deletion Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[150] backdrop-blur-sm">
+        <div class="bg-white rounded-2xl w-full max-w-xs p-6 shadow-2xl text-center">
+            <div class="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-800 mb-2">タイマーの削除</h3>
+            <p class="text-xs text-slate-400 mb-6 leading-relaxed">このタイマーと全ての履歴を完全に消去します。元に戻すことはできません。</p>
+            <div class="flex gap-2">
+                <button onclick="closeModal('delete')" class="flex-1 py-3 text-slate-500 font-bold">キャンセル</button>
+                <button id="deleteExecuteBtn" class="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold active:scale-95 transition shadow-lg shadow-red-100">実行する</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
         import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
@@ -145,7 +163,6 @@
   appId: "1:779981072804:web:62bcfad1b1bbe392993931",
   measurementId: "G-3W7X6BDZRG"
 };
-
         function resolveConfig() {
             if (typeof __firebase_config !== 'undefined' && __firebase_config) return JSON.parse(__firebase_config);
             if (firebaseConfig && firebaseConfig.apiKey) return firebaseConfig;
@@ -175,6 +192,7 @@
                     user = u;
                     document.getElementById('loginOverlay').classList.add('hidden');
                     document.getElementById('appRoot').classList.remove('hidden');
+                    document.getElementById('syncStatus').innerText = "Cloud Synced";
                     setupRealtimeSync();
                 } else {
                     if (u && u.isAnonymous) await signOut(auth);
@@ -206,12 +224,7 @@
                 reader.onload = async (ev) => {
                     const buffer = ev.target.result;
                     let text = new TextDecoder("utf-8").decode(buffer);
-                    
-                    // Logic: If UTF-8 decode contains replacement characters (mojibake), fallback to Shift-JIS (Excel Japan standard)
-                    if (text.includes('')) {
-                        text = new TextDecoder("shift-jis").decode(buffer);
-                    }
-                    
+                    if (text.includes('')) text = new TextDecoder("shift-jis").decode(buffer);
                     const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
                     for (const line of lines) {
                         const cols = line.split(",").map(c => c.trim().replace(/^"|"$/g, ''));
@@ -270,13 +283,20 @@
 
             window.closeModal = (type) => { document.getElementById(`${type}Modal`).style.display = 'none'; };
 
+            // Logic Fix: Internal Delete Protocol
+            window.deleteTimer = (id) => {
+                currentEditingTimerId = id;
+                document.getElementById('deleteModal').style.display = 'flex';
+                document.getElementById('deleteExecuteBtn').onclick = async () => {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', id.toString()));
+                    closeModal('delete');
+                };
+            };
+
             window.createTimer = async () => {
-                const title = document.getElementById('newTimerTitle').value.trim();
-                const cat = document.getElementById('newTimerCategory').value.trim() || '未分類';
-                const date = document.getElementById('newTimerInitialDate').value;
+                const title = document.getElementById('newTimerTitle').value.trim(), cat = document.getElementById('newTimerCategory').value.trim() || '未分類', date = document.getElementById('newTimerInitialDate').value;
                 if (!title) return;
-                const nid = Date.now().toString();
-                const nt = { id: nid, title, category: cat, isExpanded: true, logs: date ? [{ id: Date.now()+1, timestamp: new Date(date).getTime(), memo: document.getElementById('newTimerInitialMemo').value.trim() }] : [] };
+                const nid = Date.now().toString(), nt = { id: nid, title, category: cat, isExpanded: true, logs: date ? [{ id: Date.now()+1, timestamp: new Date(date).getTime(), memo: document.getElementById('newTimerInitialMemo').value.trim() }] : [] };
                 await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', nid), nt);
                 closeModal('timer');
             };
@@ -306,7 +326,6 @@
                 closeModal('log');
             };
 
-            window.deleteTimer = async (id) => { if(confirm('削除しますか？')) await deleteDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', id.toString())); };
             window.toggleExpand = async (id) => { const t = data.find(t => t.id === id.toString()); await updateDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', id.toString()), { isExpanded: !t.isExpanded }); };
             window.filterCategory = (cat) => { selectedCategory = cat; renderCategories(); render(); };
 
@@ -314,10 +333,7 @@
                 const header = ["Category", "Title", "LogDate", "LogMemo"];
                 const rows = [];
                 data.forEach(t => t.logs.forEach(l => {
-                    const localDate = new Date(l.timestamp).toLocaleString('ja-JP', {
-                        year: 'numeric', month: '2-digit', day: '2-digit',
-                        hour: '2-digit', minute: '2-digit', second: '2-digit'
-                    }).replace(/\//g, '-');
+                    const localDate = new Date(l.timestamp).toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\//g, '-');
                     rows.push([t.category, t.title, localDate, l.memo]);
                 }));
                 const csv = "\uFEFF" + [header.join(","), ...rows.map(r => r.map(v => `"${(v||"").toString().replace(/"/g,'""')}"`).join(","))].join("\n");
@@ -335,9 +351,7 @@
                 const container = document.getElementById('mainContainer'); container.innerHTML = '';
                 const filtered = selectedCategory === 'すべて' ? data : data.filter(t => t.category === selectedCategory);
                 filtered.forEach(timer => {
-                    const latest = timer.logs[0];
-                    const diff = latest ? Date.now() - latest.timestamp : 0;
-                    const abs = Math.abs(diff), days = Math.floor(abs / 86400000), y = Math.floor(days / 365), m = Math.floor((days % 365) / 30.44), d = Math.floor(days % 30.44);
+                    const latest = timer.logs[0], diff = latest ? Date.now() - latest.timestamp : 0, abs = Math.abs(diff), days = Math.floor(abs / 86400000), y = Math.floor(days / 365), m = Math.floor((days % 365) / 30.44), d = Math.floor(days % 30.44);
                     let rel = (y > 0 ? y + 'y ' : '') + (m > 0 ? m + 'm ' : '') + (d + 'd') + (diff >= 0 ? ' ago' : ' later');
                     const card = document.createElement('div'); card.className = "bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-4";
                     let timeline = '';
