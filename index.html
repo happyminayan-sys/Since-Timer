@@ -138,7 +138,7 @@
             <p class="text-xs text-slate-400 mb-6 leading-relaxed">この操作は取り消せません。本当に削除してよろしいですか？</p>
             <div class="flex gap-2">
                 <button onclick="closeModal('delete')" class="flex-1 py-3 text-slate-500 font-bold">中止</button>
-                <button id="deleteExecuteBtn" class="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold active:scale-95 transition shadow-lg shadow-red-100">削除する</button>
+                <button id="deleteExecuteBtn" class="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold active:scale-95 transition">削除する</button>
             </div>
         </div>
     </div>
@@ -165,6 +165,9 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
+        // Logic Update: Force account selection prompt to allow switching Google accounts
+        provider.setCustomParameters({ prompt: 'select_account' });
+
         const currentAppId = typeof __app_id !== 'undefined' ? __app_id : 'since-timer-cloud';
 
         let data = [];
@@ -420,12 +423,11 @@
                 const now = Date.now();
                 switch(sortMode) {
                     case 'recent': 
-                        // Logic Update: Future first (closest to now), then Past (latest first)
                         const isFutureA = tsA > now, isFutureB = tsB > now;
                         if (isFutureA && !isFutureB) return -1;
                         if (!isFutureA && isFutureB) return 1;
-                        if (isFutureA && isFutureB) return tsA - tsB; // Future: earliest first
-                        return tsB - tsA; // Past: latest first
+                        if (isFutureA && isFutureB) return tsA - tsB; 
+                        return tsB - tsA; 
                     case 'modified': return Math.max(...b.logs.map(l => l.id), 0) - Math.max(...a.logs.map(l => l.id), 0);
                     case 'created': return Number(b.id) - Number(a.id);
                     case 'name': return a.title.localeCompare(b.title, 'ja');
