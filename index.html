@@ -37,9 +37,7 @@
                         <h1 class="text-2xl font-black tracking-tighter text-slate-800">Timeline Since</h1>
                         <p class="text-xs text-slate-500 font-medium italic" id="syncStatus">Syncing...</p>
                     </div>
-                    <div class="flex flex-col items-end gap-1">
-                        <button onclick="handleLogout()" class="text-[10px] text-slate-400 hover:text-red-500 underline mb-1">ログアウト</button>
-                    </div>
+                    <button onclick="handleLogout()" class="text-[10px] text-slate-400 hover:text-red-500 underline">ログアウト</button>
                 </div>
 
                 <div class="flex gap-2 items-center mb-6">
@@ -54,11 +52,24 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                         <input type="file" class="hidden" accept=".csv" onchange="importSpreadsheetCSV(event)">
                     </label>
-                    <button onclick="exportJSON()" class="p-3 bg-white border border-slate-200 text-slate-500 rounded-xl shadow-sm hover:bg-slate-50 active:scale-95 transition-all" title="物理バックアップ">
+                    <button onclick="exportJSON()" class="p-3 bg-white border border-slate-200 text-slate-500 rounded-xl shadow-sm hover:bg-slate-50 active:scale-95 transition-all" title="JSONバックアップ">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                     </button>
+                    <label class="p-3 bg-white border border-slate-200 text-slate-500 rounded-xl shadow-sm hover:bg-slate-50 active:scale-95 transition-all cursor-pointer" title="JSON復元">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l4 4m-4-4h12"/></svg>
+                        <input type="file" class="hidden" accept=".json" onchange="importJSON(event)">
+                    </label>
                 </div>
-                <div id="categoryTabs" class="flex gap-2 overflow-x-auto pb-4 no-scrollbar"></div>
+
+                <div class="flex items-center justify-between mb-2">
+                    <div id="categoryTabs" class="flex gap-2 overflow-x-auto no-scrollbar flex-1 mr-2"></div>
+                    <select onchange="updateSort(this.value)" id="sortSelector" class="bg-slate-50 border border-slate-200 text-slate-500 text-[10px] font-bold rounded-lg px-2 py-1 outline-none focus:ring-1 focus:ring-sky-500">
+                        <option value="recent">直近日時順</option>
+                        <option value="modified">最終記録順</option>
+                        <option value="created">作成順</option>
+                        <option value="name">名前順</option>
+                    </select>
+                </div>
             </header>
             <div id="mainContainer" class="space-y-6"></div>
         </div>
@@ -159,6 +170,7 @@
         let data = [];
         let user = null;
         let selectedCategory = 'すべて';
+        let sortMode = 'recent'; 
         let currentEditingTimerId = null;
         let currentEditingLogId = null;
 
@@ -191,6 +203,7 @@
             });
         }
 
+        // Logic Update: Advanced Time Formatting in Japanese (◯年◯ヶ月◯日)
         function formatRelativeTime(ms) {
             const diff = Date.now() - ms;
             const abs = Math.abs(diff);
@@ -260,13 +273,32 @@
             reader.readAsArrayBuffer(f);
         };
 
+        // Logical Addition: JSON Import Protocol
+        window.importJSON = async (e) => {
+            const f = e.target.files[0]; if (!f || !confirm("クラウド上のデータへ追加・統合されます。よろしいですか？")) return;
+            const reader = new FileReader();
+            reader.onload = async (ev) => {
+                try {
+                    const imported = JSON.parse(ev.target.result);
+                    if (Array.isArray(imported)) {
+                        for (const timer of imported) {
+                            const docId = (timer.id || Date.now() + Math.random()).toString();
+                            await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', docId), timer);
+                        }
+                        alert('JSONデータの復旧が完了しました。');
+                    }
+                } catch (err) { alert('読み込みに失敗しました。'); }
+            };
+            reader.readAsText(f);
+        };
+
         window.openModal = (type, id = null, logId = null) => {
             document.getElementById(`${type}Modal`).style.display = 'flex';
             currentEditingTimerId = id; currentEditingLogId = logId;
             const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             const ds = now.toISOString().slice(0, 16);
             if (type === 'timer') {
-                updateCategoryDatalist();
+                updateCategoryList();
                 if (id) {
                     const t = data.find(t => t.id === id.toString());
                     document.getElementById('newTimerTitle').value = t.title; document.getElementById('newTimerCategory').value = t.category;
@@ -353,14 +385,19 @@
 
         window.toggleExpand = async (id) => { const t = data.find(t => t.id === id.toString()); await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id.toString()), { isExpanded: !t.isExpanded }); };
         window.filterCategory = (cat) => { selectedCategory = cat; renderCategories(); render(); };
+        window.updateSort = (mode) => { sortMode = mode; render(); };
 
         window.exportCSV = () => {
             const header = ["Category", "Title", "LogDate", "LogMemo"];
             const rows = [];
-            data.forEach(t => t.logs.forEach(l => {
-                const localDate = new Date(l.timestamp).toLocaleString('ja-JP').replace(/\//g, '-');
-                rows.push([t.category, t.title, localDate, l.memo]);
-            }));
+            data.forEach(t => {
+                const cat = t.category || "未分類";
+                if (t.logs.length === 0) rows.push([cat, t.title, "-", "-"]);
+                else t.logs.forEach(l => {
+                    const localDate = new Date(l.timestamp).toLocaleString('ja-JP').replace(/\//g, '-');
+                    rows.push([cat, t.title, localDate, l.memo || ""]);
+                });
+            });
             const csv = "\uFEFF" + [header.join(","), ...rows.map(r => r.map(v => `"${(v||"").toString().replace(/"/g,'""')}"`).join(","))].join("\n");
             const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `timer_export.csv`; a.click();
         };
@@ -369,25 +406,41 @@
             const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })); a.download = `timer_backup.json`; a.click();
         };
 
-        function updateCategoryDatalist() { const cats = [...new Set(data.map(t => t.category))].filter(c => c !== '未分類'); document.getElementById('existingCategories').innerHTML = cats.map(c => `<option value="${c}">`).join(''); }
-        function renderCategories() { const cats = ['すべて', ...new Set(data.map(t => t.category))].sort(); document.getElementById('categoryTabs').innerHTML = cats.map(cat => `<button onclick="filterCategory('${cat}')" class="${selectedCategory === cat ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 border border-slate-200'} px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition">${cat}</button>`).join(''); }
+        function updateCategoryList() {
+            const cats = [...new Set(data.map(t => t.category))].filter(c => c !== '未分類');
+            document.getElementById('existingCategories').innerHTML = cats.map(c => `<option value="${c}">`).join('');
+        }
+        function renderCategories() {
+            const cats = ['すべて', ...new Set(data.map(t => t.category))].sort();
+            document.getElementById('categoryTabs').innerHTML = cats.map(cat => `<button onclick="filterCategory('${cat}')" class="${selectedCategory === cat ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 border border-slate-200'} px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition">${cat}</button>`).join('');
+        }
         
         function render() {
             const container = document.getElementById('mainContainer'); container.innerHTML = '';
-            const filtered = selectedCategory === 'すべて' ? data : data.filter(t => t.category === selectedCategory);
+            let filtered = selectedCategory === 'すべて' ? [...data] : data.filter(t => t.category === selectedCategory);
+
+            filtered.sort((a, b) => {
+                const tsA = a.logs[0]?.timestamp || 0, tsB = b.logs[0]?.timestamp || 0;
+                switch(sortMode) {
+                    case 'recent': return Math.abs(Date.now() - tsA) - Math.abs(Date.now() - tsB);
+                    case 'modified': return Math.max(...b.logs.map(l => l.id), 0) - Math.max(...a.logs.map(l => l.id), 0);
+                    case 'created': return Number(b.id) - Number(a.id);
+                    case 'name': return a.title.localeCompare(b.title, 'ja');
+                    default: return 0;
+                }
+            });
+
             filtered.forEach(timer => {
-                const latest = timer.logs[0];
-                const relTimeText = latest ? formatRelativeTime(latest.timestamp) : "記録なし";
+                const latest = timer.logs[0], relTimeText = latest ? formatRelativeTime(latest.timestamp) : "記録なし";
                 const card = document.createElement('div'); card.className = "bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-4";
                 let timeline = '';
                 if (timer.isExpanded && timer.logs.length > 0) {
                     timeline = `<div class="px-6 pb-6 pt-2 space-y-6 relative"><div class="timeline-line"></div>${timer.logs.map((log, idx) => {
-                        const rel = formatRelativeTime(log.timestamp);
-                        const interval = idx < timer.logs.length - 1 ? calculateInterval(log.timestamp, timer.logs[idx+1].timestamp) : null;
+                        const rel = formatRelativeTime(log.timestamp), interval = idx < timer.logs.length - 1 ? calculateInterval(log.timestamp, timer.logs[idx+1].timestamp) : null;
                         return `<div class="relative pl-8 group"><div class="timeline-dot"></div><div class="flex justify-between items-start"><div class="flex-1" onclick="event.stopPropagation(); openModal('log', '${timer.id}', ${log.id})"><div class="flex items-center gap-2"><span class="text-sm font-black text-slate-700">${rel}</span><span class="text-[10px] text-slate-400 font-medium">${new Date(log.timestamp).toLocaleDateString()}</span></div>${interval ? `<div class="text-[10px] text-sky-500 font-bold tracking-tight mb-1">${interval}</div>` : ''}${log.memo ? `<p class="text-[11px] text-slate-500 mt-1 bg-slate-50 p-2 rounded-lg border border-slate-100">${log.memo.replace(/\n/g, '<br>')}</p>` : ''}</div><button onclick="event.stopPropagation(); deleteLog('${timer.id}', ${log.id})" class="p-1 text-slate-300 hover:text-red-400 transition ml-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button></div></div>`;
                     }).join('')}</div>`;
                 }
-                card.innerHTML = `<div class="p-5 flex justify-between items-start cursor-pointer hover:bg-slate-50 transition" onclick="toggleExpand('${timer.id}')"><div class="flex-1"><div class="flex items-center gap-2 mb-1"><span class="text-[9px] font-black uppercase px-2 py-0.5 bg-slate-100 text-slate-500 rounded">${timer.category}</span>${latest ? `<span class="text-xs font-bold text-sky-500 mono">${relTimeText}</span>` : ''}</div><div class="flex items-center gap-2"><h2 class="text-lg font-bold text-slate-800 tracking-tight">${timer.title}</h2><button onclick="event.stopPropagation(); openModal('timer', '${timer.id}')" class="text-slate-300 hover:text-sky-500 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></button></div></div><div class="flex flex-col items-end gap-3" onclick="event.stopPropagation()"><button onclick="deleteTimer('${timer.id}')" class="text-slate-400 hover:text-red-400 transition p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button><button onclick="openModal('log', '${timer.id}')" class="w-10 h-10 bg-sky-50 text-sky-600 rounded-full flex items-center justify-center hover:bg-sky-500 hover:text-white transition shadow-sm"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M12 4v16m8-8H4"/></svg></button></div></div>${timeline}`;
+                card.innerHTML = `<div class="p-5 flex justify-between items-start cursor-pointer hover:bg-slate-50 transition" onclick="toggleExpand('${timer.id}')"><div class="flex-1"><div class="flex items-center gap-2 mb-1"><span class="text-[9px] font-black uppercase px-2 py-0.5 bg-slate-100 text-slate-500 rounded">${timer.category}</span>${latest ? `<span class="text-xs font-bold text-sky-500 mono">${relTimeText}</span>` : ''}</div><div class="flex items-center gap-2"><h2 class="text-lg font-bold text-slate-800 tracking-tight">${timer.title}</h2><button onclick="event.stopPropagation(); openModal('timer', '${timer.id}')" class="text-slate-300 hover:text-sky-500 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></button></div></div><div class="flex flex-col items-end gap-3" onclick="event.stopPropagation()"><button onclick="deleteTimer('${timer.id}')" class="text-slate-400 hover:text-red-400 transition p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button><button onclick="openModal('log', '${timer.id}')" class="w-10 h-10 bg-sky-50 text-sky-600 rounded-full flex items-center justify-center hover:bg-sky-500 hover:text-white transition shadow-sm"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M12 4v16m8-8H4"/></svg></button></div></div>${timeline}`;
                 container.appendChild(card);
             });
         }
