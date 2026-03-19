@@ -140,7 +140,6 @@
 
         // ==========================================
         // ミナ様専用：Firebase Config 貼り付けエリア
-        // 取得した SDK コードをここにそのまま貼り付けてください。
         // ==========================================
         const firebaseConfig = {
   apiKey: "AIzaSyC6TKgRNRFhm023uAtTnXyJXHcQtO4i4nA",
@@ -283,8 +282,8 @@
                 const date = document.getElementById('newTimerInitialDate').value;
                 if (!title) return;
                 const nid = Date.now().toString();
-                const nt = { id: nid, title, category: cat, isExpanded: true, logs: date ? [{ id: Date.now()+1, timestamp: new Date(date).getTime(), memo: document.getElementById('newTimerInitialMemo').value.trim() }] : [] };
-                await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', nid), nt);
+                const timerData = { id: nid, title, category: cat, isExpanded: true, logs: date ? [{ id: Date.now()+1, timestamp: new Date(date).getTime(), memo: document.getElementById('newTimerInitialMemo').value.trim() }] : [] };
+                await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', nid), timerData);
                 closeModal('timer');
             };
 
@@ -320,13 +319,21 @@
             window.exportCSV = () => {
                 const header = ["Category", "Title", "LogDate", "LogMemo"];
                 const rows = [];
-                data.forEach(t => t.logs.forEach(l => {
-                    const localDate = new Date(l.timestamp).toLocaleString('ja-JP', {
-                        year: 'numeric', month: '2-digit', day: '2-digit',
-                        hour: '2-digit', minute: '2-digit', second: '2-digit'
-                    }).replace(/\//g, '-');
-                    rows.push([t.category, t.title, localDate, l.memo]);
-                }));
+                data.forEach(t => {
+                    const category = t.category || "未分類";
+                    if (t.logs.length === 0) {
+                        // 履歴がゼロでもタイマーの存在をエクスポートに含める
+                        rows.push([category, t.title, "-", "-"]);
+                    } else {
+                        t.logs.forEach(l => {
+                            const localDate = new Date(l.timestamp).toLocaleString('ja-JP', {
+                                year: 'numeric', month: '2-digit', day: '2-digit',
+                                hour: '2-digit', minute: '2-digit', second: '2-digit'
+                            }).replace(/\//g, '-');
+                            rows.push([category, t.title, localDate, l.memo || ""]);
+                        });
+                    }
+                });
                 const csv = "\uFEFF" + [header.join(","), ...rows.map(r => r.map(v => `"${(v||"").toString().replace(/"/g,'""')}"`).join(","))].join("\n");
                 const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `timer_export.csv`; a.click();
             };
