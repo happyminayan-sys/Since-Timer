@@ -37,7 +37,9 @@
                         <h1 class="text-2xl font-black tracking-tighter text-slate-800">Timeline Since</h1>
                         <p class="text-xs text-slate-500 font-medium italic" id="syncStatus">Syncing...</p>
                     </div>
-                    <button onclick="handleLogout()" class="text-[10px] text-slate-400 hover:text-red-500 underline">ログアウト</button>
+                    <div class="flex flex-col items-end gap-1">
+                        <button onclick="handleLogout()" class="text-[10px] text-slate-400 hover:text-red-500 underline mb-1">ログアウト</button>
+                    </div>
                 </div>
 
                 <div class="flex gap-2 items-center mb-6">
@@ -52,7 +54,7 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                         <input type="file" class="hidden" accept=".csv" onchange="importSpreadsheetCSV(event)">
                     </label>
-                    <button onclick="exportJSON()" class="p-3 bg-white border border-slate-200 text-slate-500 rounded-xl shadow-sm hover:bg-slate-50 active:scale-95 transition-all" title="JSONバックアップ">
+                    <button onclick="exportJSON()" class="p-3 bg-white border border-slate-200 text-slate-500 rounded-xl shadow-sm hover:bg-slate-50 active:scale-95 transition-all" title="物理バックアップ">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                     </button>
                 </div>
@@ -189,7 +191,6 @@
             });
         }
 
-        // Logic Update: Advanced Time Formatting in Japanese (Includes Days)
         function formatRelativeTime(ms) {
             const diff = Date.now() - ms;
             const abs = Math.abs(diff);
@@ -209,24 +210,19 @@
                 return `${m}ヶ月${d}日${suffix}`;
             }
             if (totalDays >= 1) return `${totalDays}日${suffix}`;
-            
             const hours = Math.floor(abs / 3600000);
             if (hours >= 1) return `${hours}時間${suffix}`;
-            
             const mins = Math.floor(abs / 60000);
             if (mins >= 1) return `${mins}分${suffix}`;
-            
             return "たった今";
         }
 
-        // Logic: Calculate Interval from Previous Log
         function calculateInterval(currentMs, prevMs) {
             if (!prevMs) return null;
             const diff = Math.abs(currentMs - prevMs);
             const totalDays = Math.floor(diff / 86400000);
             const months = Math.floor(totalDays / 30.44);
             const days = Math.floor(totalDays % 30.44);
-            
             let res = "前回から";
             if (months > 0) res += months + "ヶ月";
             res += days + "日";
@@ -255,7 +251,7 @@
                         }
                     } else {
                         const nid = (Date.now() + Math.random()).toString();
-                        const nt = { id: nid, title, category: cat, isExpanded: true, logs: [{ id: Date.now() + Math.random(), timestamp: ts, memo: cols[3] || "" }] };
+                        const nt = { id: nid, title, category: cat, isExpanded: false, logs: [{ id: Date.now() + Math.random(), timestamp: ts, memo: cols[3] || "" }] };
                         await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', nid), nt);
                     }
                 }
@@ -325,7 +321,7 @@
         window.createTimer = async () => {
             const title = document.getElementById('newTimerTitle').value.trim(), cat = document.getElementById('newTimerCategory').value.trim() || '未分類', date = document.getElementById('newTimerInitialDate').value;
             if (!title) return;
-            const nid = Date.now().toString(), nt = { id: nid, title, category: cat, isExpanded: true, logs: date ? [{ id: Date.now()+1, timestamp: new Date(date).getTime(), memo: document.getElementById('newTimerInitialMemo').value.trim() }] : [] };
+            const nid = Date.now().toString(), nt = { id: nid, title, category: cat, isExpanded: false, logs: date ? [{ id: Date.now()+1, timestamp: new Date(date).getTime(), memo: document.getElementById('newTimerInitialMemo').value.trim() }] : [] };
             await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', nid), nt);
             closeModal('timer');
         };
@@ -355,7 +351,7 @@
             closeModal('log');
         };
 
-        window.toggleExpand = async (id) => { const t = data.find(t => t.id === id.toString()); await updateDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', id.toString()), { isExpanded: !t.isExpanded }); };
+        window.toggleExpand = async (id) => { const t = data.find(t => t.id === id.toString()); await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id.toString()), { isExpanded: !t.isExpanded }); };
         window.filterCategory = (cat) => { selectedCategory = cat; renderCategories(); render(); };
 
         window.exportCSV = () => {
@@ -383,48 +379,15 @@
                 const latest = timer.logs[0];
                 const relTimeText = latest ? formatRelativeTime(latest.timestamp) : "記録なし";
                 const card = document.createElement('div'); card.className = "bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-4";
-                
                 let timeline = '';
                 if (timer.isExpanded && timer.logs.length > 0) {
                     timeline = `<div class="px-6 pb-6 pt-2 space-y-6 relative"><div class="timeline-line"></div>${timer.logs.map((log, idx) => {
                         const rel = formatRelativeTime(log.timestamp);
                         const interval = idx < timer.logs.length - 1 ? calculateInterval(log.timestamp, timer.logs[idx+1].timestamp) : null;
-                        return `
-                            <div class="relative pl-8 group">
-                                <div class="timeline-dot"></div>
-                                <div class="flex justify-between items-start">
-                                    <div class="flex-1" onclick="event.stopPropagation(); openModal('log', '${timer.id}', ${log.id})">
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-sm font-black text-slate-700">${rel}</span>
-                                            <span class="text-[10px] text-slate-400 font-medium">${new Date(log.timestamp).toLocaleDateString()}</span>
-                                        </div>
-                                        ${interval ? `<div class="text-[10px] text-sky-500 font-bold tracking-tight mb-1">${interval}</div>` : ''}
-                                        ${log.memo ? `<p class="text-[11px] text-slate-500 mt-1 bg-slate-50 p-2 rounded-lg border border-slate-100">${log.memo.replace(/\n/g, '<br>')}</p>` : ''}
-                                    </div>
-                                    <button onclick="event.stopPropagation(); deleteLog('${timer.id}', ${log.id})" class="p-1 text-slate-300 hover:text-red-400 transition ml-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
-                                </div>
-                            </div>`;
+                        return `<div class="relative pl-8 group"><div class="timeline-dot"></div><div class="flex justify-between items-start"><div class="flex-1" onclick="event.stopPropagation(); openModal('log', '${timer.id}', ${log.id})"><div class="flex items-center gap-2"><span class="text-sm font-black text-slate-700">${rel}</span><span class="text-[10px] text-slate-400 font-medium">${new Date(log.timestamp).toLocaleDateString()}</span></div>${interval ? `<div class="text-[10px] text-sky-500 font-bold tracking-tight mb-1">${interval}</div>` : ''}${log.memo ? `<p class="text-[11px] text-slate-500 mt-1 bg-slate-50 p-2 rounded-lg border border-slate-100">${log.memo.replace(/\n/g, '<br>')}</p>` : ''}</div><button onclick="event.stopPropagation(); deleteLog('${timer.id}', ${log.id})" class="p-1 text-slate-300 hover:text-red-400 transition ml-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button></div></div>`;
                     }).join('')}</div>`;
                 }
-
-                card.innerHTML = `
-                    <div class="p-5 flex justify-between items-start cursor-pointer hover:bg-slate-50 transition" onclick="toggleExpand('${timer.id}')">
-                        <div class="flex-1">
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="text-[9px] font-black uppercase px-2 py-0.5 bg-slate-100 text-slate-500 rounded">${timer.category}</span>
-                                ${latest ? `<span class="text-xs font-bold text-sky-500 mono">${relTimeText}</span>` : ''}
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <h2 class="text-lg font-bold text-slate-800 tracking-tight">${timer.title}</h2>
-                                <button onclick="event.stopPropagation(); openModal('timer', '${timer.id}')" class="text-slate-300 hover:text-sky-500 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></button>
-                            </div>
-                        </div>
-                        <div class="flex flex-col items-end gap-3" onclick="event.stopPropagation()">
-                            <button onclick="deleteTimer('${timer.id}')" class="text-slate-400 hover:text-red-400 transition p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
-                            <button onclick="openModal('log', '${timer.id}')" class="w-10 h-10 bg-sky-50 text-sky-600 rounded-full flex items-center justify-center hover:bg-sky-500 hover:text-white transition shadow-sm"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M12 4v16m8-8H4"/></svg></button>
-                        </div>
-                    </div>
-                    ${timeline}`;
+                card.innerHTML = `<div class="p-5 flex justify-between items-start cursor-pointer hover:bg-slate-50 transition" onclick="toggleExpand('${timer.id}')"><div class="flex-1"><div class="flex items-center gap-2 mb-1"><span class="text-[9px] font-black uppercase px-2 py-0.5 bg-slate-100 text-slate-500 rounded">${timer.category}</span>${latest ? `<span class="text-xs font-bold text-sky-500 mono">${relTimeText}</span>` : ''}</div><div class="flex items-center gap-2"><h2 class="text-lg font-bold text-slate-800 tracking-tight">${timer.title}</h2><button onclick="event.stopPropagation(); openModal('timer', '${timer.id}')" class="text-slate-300 hover:text-sky-500 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></button></div></div><div class="flex flex-col items-end gap-3" onclick="event.stopPropagation()"><button onclick="deleteTimer('${timer.id}')" class="text-slate-400 hover:text-red-400 transition p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button><button onclick="openModal('log', '${timer.id}')" class="w-10 h-10 bg-sky-50 text-sky-600 rounded-full flex items-center justify-center hover:bg-sky-500 hover:text-white transition shadow-sm"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M12 4v16m8-8H4"/></svg></button></div></div>${timeline}`;
                 container.appendChild(card);
             });
         }
