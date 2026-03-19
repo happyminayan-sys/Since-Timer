@@ -131,17 +131,16 @@
         </div>
     </div>
 
-    <!-- Logical Addition: Pure UI Deletion Confirmation Modal -->
     <div id="deleteModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[150] backdrop-blur-sm">
         <div class="bg-white rounded-2xl w-full max-w-xs p-6 shadow-2xl text-center">
             <div class="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
             </div>
-            <h3 class="text-lg font-bold text-slate-800 mb-2">タイマーの削除</h3>
-            <p class="text-xs text-slate-400 mb-6 leading-relaxed">このタイマーと全ての履歴を完全に消去します。元に戻すことはできません。</p>
+            <h3 class="text-lg font-bold text-slate-800 mb-2" id="deleteTargetName">データの削除</h3>
+            <p class="text-xs text-slate-400 mb-6 leading-relaxed">この操作は取り消せません。本当に削除してよろしいですか？</p>
             <div class="flex gap-2">
-                <button onclick="closeModal('delete')" class="flex-1 py-3 text-slate-500 font-bold">キャンセル</button>
-                <button id="deleteExecuteBtn" class="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold active:scale-95 transition shadow-lg shadow-red-100">実行する</button>
+                <button onclick="closeModal('delete')" class="flex-1 py-3 text-slate-500 font-bold">中止</button>
+                <button id="deleteExecuteBtn" class="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold active:scale-95 transition shadow-lg shadow-red-100">削除する</button>
             </div>
         </div>
     </div>
@@ -163,7 +162,10 @@
   appId: "1:779981072804:web:62bcfad1b1bbe392993931",
   measurementId: "G-3W7X6BDZRG"
 };
-        function resolveConfig() {
+
+        let db, auth, user, currentAppId;
+
+        function resolveFirebaseConfig() {
             if (typeof __firebase_config !== 'undefined' && __firebase_config) return JSON.parse(__firebase_config);
             if (firebaseConfig && firebaseConfig.apiKey) return firebaseConfig;
             const stored = localStorage.getItem('since_timer_cloud_config');
@@ -171,18 +173,21 @@
             return null;
         }
 
-        const config = resolveConfig();
+        const config = resolveFirebaseConfig();
         if (!config) {
             document.getElementById('setupWizard').classList.remove('hidden');
         } else {
+            initAppLogic(config);
+        }
+
+        function initAppLogic(config) {
             const app = initializeApp(config);
-            const auth = getAuth(app);
-            const db = getFirestore(app);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            currentAppId = typeof __app_id !== 'undefined' ? __app_id : 'since-timer-cloud';
             const provider = new GoogleAuthProvider();
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'since-timer-cloud';
 
             let data = [];
-            let user = null;
             let selectedCategory = 'すべて';
             let currentEditingTimerId = null;
             let currentEditingLogId = null;
@@ -192,7 +197,6 @@
                     user = u;
                     document.getElementById('loginOverlay').classList.add('hidden');
                     document.getElementById('appRoot').classList.remove('hidden');
-                    document.getElementById('syncStatus').innerText = "Cloud Synced";
                     setupRealtimeSync();
                 } else {
                     if (u && u.isAnonymous) await signOut(auth);
@@ -210,14 +214,13 @@
             window.handleLogout = () => { if(confirm("ログアウトしますか？")) signOut(auth); };
 
             function setupRealtimeSync() {
-                const q = query(collection(db, 'artifacts', appId, 'users', user.uid, 'timers'));
+                const q = query(collection(db, 'artifacts', currentAppId, 'users', user.uid, 'timers'));
                 onSnapshot(q, (snapshot) => {
                     data = snapshot.docs.map(doc => ({ docId: doc.id, ...doc.data() }));
                     renderCategories(); render();
                 }, (err) => { document.getElementById('syncStatus').innerText = "Access Denied (Check Rules)"; });
             }
 
-            // --- Encoding Recovery Integration ---
             window.importSpreadsheetCSV = async (e) => {
                 const f = e.target.files[0]; if (!f) return;
                 const reader = new FileReader();
@@ -236,15 +239,15 @@
                             if (!timer.logs.some(l => Math.abs(l.timestamp - ts) < 1000)) {
                                 timer.logs.push({ id: Date.now() + Math.random(), timestamp: ts, memo: cols[3] || "" });
                                 timer.logs.sort((a,b) => b.timestamp - a.timestamp);
-                                await updateDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', timer.id), { logs: timer.logs });
+                                await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', timer.id), { logs: timer.logs });
                             }
                         } else {
                             const nid = (Date.now() + Math.random()).toString();
                             const nt = { id: nid, title, category: cat, isExpanded: true, logs: [{ id: Date.now() + Math.random(), timestamp: ts, memo: cols[3] || "" }] };
-                            await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', nid), nt);
+                            await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', nid), nt);
                         }
                     }
-                    document.getElementById('syncStatus').innerText = "Import Complete";
+                    alert('統合完了');
                 };
                 reader.readAsArrayBuffer(f);
             };
@@ -283,12 +286,25 @@
 
             window.closeModal = (type) => { document.getElementById(`${type}Modal`).style.display = 'none'; };
 
-            // Logic Fix: Internal Delete Protocol
+            // Logic Fix: Visible Delete Protocol
             window.deleteTimer = (id) => {
-                currentEditingTimerId = id;
+                const timer = data.find(t => t.id === id.toString());
+                document.getElementById('deleteTargetName').innerText = timer ? `「${timer.title}」を削除` : "タイマーの削除";
                 document.getElementById('deleteModal').style.display = 'flex';
                 document.getElementById('deleteExecuteBtn').onclick = async () => {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', id.toString()));
+                    await deleteDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id.toString()));
+                    closeModal('delete');
+                };
+            };
+
+            window.deleteLog = (timerId, logId) => {
+                const timer = data.find(t => t.id === timerId.toString());
+                const log = timer?.logs.find(l => l.id === logId);
+                document.getElementById('deleteTargetName').innerText = log ? `履歴(${new Date(log.timestamp).toLocaleDateString()})を削除` : "履歴の削除";
+                document.getElementById('deleteModal').style.display = 'flex';
+                document.getElementById('deleteExecuteBtn').onclick = async () => {
+                    const updatedLogs = timer.logs.filter(l => l.id !== logId);
+                    await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', timerId.toString()), { logs: updatedLogs });
                     closeModal('delete');
                 };
             };
@@ -297,13 +313,13 @@
                 const title = document.getElementById('newTimerTitle').value.trim(), cat = document.getElementById('newTimerCategory').value.trim() || '未分類', date = document.getElementById('newTimerInitialDate').value;
                 if (!title) return;
                 const nid = Date.now().toString(), nt = { id: nid, title, category: cat, isExpanded: true, logs: date ? [{ id: Date.now()+1, timestamp: new Date(date).getTime(), memo: document.getElementById('newTimerInitialMemo').value.trim() }] : [] };
-                await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', nid), nt);
+                await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', nid), nt);
                 closeModal('timer');
             };
 
             window.updateTimer = async () => {
                 const title = document.getElementById('newTimerTitle').value.trim(), cat = document.getElementById('newTimerCategory').value.trim() || '未分類';
-                await updateDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', currentEditingTimerId.toString()), { title, category: cat });
+                await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', currentEditingTimerId.toString()), { title, category: cat });
                 closeModal('timer');
             };
 
@@ -313,7 +329,7 @@
                 const t = data.find(t => t.id === currentEditingTimerId.toString());
                 if (t) {
                     const logs = [...t.logs, { id: Date.now(), timestamp: new Date(ds).getTime(), memo }].sort((a,b) => b.timestamp - a.timestamp);
-                    await updateDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', t.id), { logs: logs, isExpanded: true });
+                    await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', t.id), { logs: logs, isExpanded: true });
                     closeModal('log');
                 }
             };
@@ -322,11 +338,11 @@
                 const ds = document.getElementById('newLogDate').value, memo = document.getElementById('newLogMemo').value.trim();
                 const t = data.find(t => t.id === currentEditingTimerId.toString());
                 const logs = t.logs.map(l => l.id === currentEditingLogId ? { ...l, timestamp: new Date(ds).getTime(), memo } : l).sort((a,b) => b.timestamp - a.timestamp);
-                await updateDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', t.id), { logs: logs, isExpanded: true });
+                await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', t.id), { logs: logs, isExpanded: true });
                 closeModal('log');
             };
 
-            window.toggleExpand = async (id) => { const t = data.find(t => t.id === id.toString()); await updateDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', id.toString()), { isExpanded: !t.isExpanded }); };
+            window.toggleExpand = async (id) => { const t = data.find(t => t.id === id.toString()); await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id.toString()), { isExpanded: !t.isExpanded }); };
             window.filterCategory = (cat) => { selectedCategory = cat; renderCategories(); render(); };
 
             window.exportCSV = () => {
@@ -344,6 +360,17 @@
                 const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })); a.download = `timer_backup.json`; a.click();
             };
 
+            window.importJSON = async (e) => {
+                const f = e.target.files[0]; if (!f) return;
+                const r = new FileReader(); r.onload = async (ev) => {
+                    try {
+                        const imp = JSON.parse(ev.target.result);
+                        if (Array.isArray(imp)) for (const t of imp) await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', (t.id||Date.now()).toString()), t);
+                        alert('復元完了');
+                    } catch (e) { alert('読み込み失敗'); }
+                }; r.readAsText(f);
+            };
+
             function updateCategoryDatalist() { const cats = [...new Set(data.map(t => t.category))].filter(c => c !== '未分類'); document.getElementById('existingCategories').innerHTML = cats.map(c => `<option value="${c}">`).join(''); }
             function renderCategories() { const cats = ['すべて', ...new Set(data.map(t => t.category))].sort(); document.getElementById('categoryTabs').innerHTML = cats.map(cat => `<button onclick="filterCategory('${cat}')" class="${selectedCategory === cat ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 border border-slate-200'} px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition">${cat}</button>`).join(''); }
             
@@ -359,10 +386,10 @@
                         timeline = `<div class="px-6 pb-6 pt-2 space-y-6 relative"><div class="timeline-line"></div>${timer.logs.map(log => {
                             const ldiff = Date.now() - log.timestamp, ldays = Math.floor(Math.abs(ldiff) / 86400000), ly = Math.floor(ldays / 365), lm = Math.floor((ldays % 365) / 30.44), ld = Math.floor(ldays % 30.44);
                             const lt = (ly > 0 ? ly + 'y ' : '') + (lm > 0 ? lm + 'm ' : '') + (ld + 'd') + (ldiff >= 0 ? ' ago' : ' later');
-                            return `<div class="relative pl-8 group" onclick="event.stopPropagation(); openModal('log', '${timer.id}', ${log.id})"><div class="timeline-dot"></div><div class="flex items-center gap-2"><span class="text-sm font-black text-slate-700">${lt}</span><span class="text-[10px] text-slate-400 font-medium">${new Date(log.timestamp).toLocaleDateString()}</span></div>${log.memo ? `<p class="text-[11px] text-slate-500 mt-1 bg-slate-50 p-2 rounded-lg border border-slate-100">${log.memo.replace(/\n/g, '<br>')}</p>` : ''}</div>`;
+                            return `<div class="relative pl-8 group"><div class="timeline-dot"></div><div class="flex justify-between items-start"><div class="flex-1" onclick="event.stopPropagation(); openModal('log', '${timer.id}', ${log.id})"><div class="flex items-center gap-2"><span class="text-sm font-black text-slate-700">${lt}</span><span class="text-[10px] text-slate-400 font-medium">${new Date(log.timestamp).toLocaleDateString()}</span></div>${log.memo ? `<p class="text-[11px] text-slate-500 mt-1 bg-slate-50 p-2 rounded-lg border border-slate-100">${log.memo.replace(/\n/g, '<br>')}</p>` : ''}</div><button onclick="event.stopPropagation(); deleteLog('${timer.id}', ${log.id})" class="opacity-0 group-hover:opacity-100 p-1 text-slate-300 hover:text-red-400 transition ml-2"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button></div></div>`;
                         }).join('')}</div>`;
                     }
-                    card.innerHTML = `<div class="p-5 flex justify-between items-start cursor-pointer hover:bg-slate-50 transition" onclick="toggleExpand('${timer.id}')"><div class="flex-1"><div class="flex items-center gap-2 mb-1"><span class="text-[9px] font-black uppercase px-2 py-0.5 bg-slate-100 text-slate-500 rounded">${timer.category}</span>${latest ? `<span class="text-xs font-bold ${diff < 0 ? 'text-emerald-500' : 'text-sky-500'} mono">${rel}</span>` : ''}</div><div class="flex items-center gap-2"><h2 class="text-lg font-bold text-slate-800 tracking-tight">${timer.title}</h2><button onclick="event.stopPropagation(); openModal('timer', '${timer.id}')" class="text-slate-300 hover:text-sky-500 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></button></div></div><div class="flex flex-col items-end gap-3" onclick="event.stopPropagation()"><button onclick="deleteTimer('${timer.id}')" class="text-slate-200 hover:text-red-400 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button><button onclick="openModal('log', '${timer.id}')" class="w-10 h-10 bg-sky-50 text-sky-600 rounded-full flex items-center justify-center hover:bg-sky-500 hover:text-white transition shadow-sm"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M12 4v16m8-8H4"/></svg></button></div></div>${timeline}`;
+                    card.innerHTML = `<div class="p-5 flex justify-between items-start cursor-pointer hover:bg-slate-50 transition" onclick="toggleExpand('${timer.id}')"><div class="flex-1"><div class="flex items-center gap-2 mb-1"><span class="text-[9px] font-black uppercase px-2 py-0.5 bg-slate-100 text-slate-500 rounded">${timer.category}</span>${latest ? `<span class="text-xs font-bold ${diff < 0 ? 'text-emerald-500' : 'text-sky-500'} mono">${rel}</span>` : ''}</div><div class="flex items-center gap-2"><h2 class="text-lg font-bold text-slate-800 tracking-tight">${timer.title}</h2><button onclick="event.stopPropagation(); openModal('timer', '${timer.id}')" class="text-slate-300 hover:text-sky-500 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></button></div></div><div class="flex flex-col items-end gap-3" onclick="event.stopPropagation()"><button onclick="deleteTimer('${timer.id}')" class="text-slate-300 hover:text-red-400 transition p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button><button onclick="openModal('log', '${timer.id}')" class="w-10 h-10 bg-sky-50 text-sky-600 rounded-full flex items-center justify-center hover:bg-sky-500 hover:text-white transition shadow-sm"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M12 4v16m8-8H4"/></svg></button></div></div>${timeline}`;
                     container.appendChild(card);
                 });
             }
