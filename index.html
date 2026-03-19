@@ -189,7 +189,7 @@
             });
         }
 
-        // Logic Update: Advanced Time Formatting in Japanese
+        // Logic Update: Advanced Time Formatting in Japanese (Includes Days)
         function formatRelativeTime(ms) {
             const diff = Date.now() - ms;
             const abs = Math.abs(diff);
@@ -198,8 +198,10 @@
 
             if (totalDays >= 365) {
                 const y = Math.floor(totalDays / 365);
-                const m = Math.floor((totalDays % 365) / 30.44);
-                return `${y}年${m}ヶ月${suffix}`;
+                const remainingAfterYears = totalDays % 365;
+                const m = Math.floor(remainingAfterYears / 30.44);
+                const d = Math.floor(remainingAfterYears % 30.44);
+                return `${y}年${m}ヶ月${d}日${suffix}`;
             }
             if (totalDays >= 30) {
                 const m = Math.floor(totalDays / 30.44);
@@ -353,7 +355,7 @@
             closeModal('log');
         };
 
-        window.toggleExpand = async (id) => { const t = data.find(t => t.id === id.toString()); await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id.toString()), { isExpanded: !t.isExpanded }); };
+        window.toggleExpand = async (id) => { const t = data.find(t => t.id === id.toString()); await updateDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'timers', id.toString()), { isExpanded: !t.isExpanded }); };
         window.filterCategory = (cat) => { selectedCategory = cat; renderCategories(); render(); };
 
         window.exportCSV = () => {
