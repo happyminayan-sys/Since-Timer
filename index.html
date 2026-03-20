@@ -165,7 +165,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
-        // Logic Update: Force account selection prompt to allow switching Google accounts
         provider.setCustomParameters({ prompt: 'select_account' });
 
         const currentAppId = typeof __app_id !== 'undefined' ? __app_id : 'since-timer-cloud';
@@ -244,6 +243,7 @@
             return res;
         }
 
+        // Logic Fix: Duplicate Prevention Import Protocol
         window.importSpreadsheetCSV = async (e) => {
             const f = e.target.files[0]; if (!f) return;
             const reader = new FileReader();
@@ -252,25 +252,38 @@
                 let text = new TextDecoder("utf-8").decode(buffer);
                 if (text.includes('\uFFFD')) text = new TextDecoder("shift-jis").decode(buffer);
                 const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
+                
+                // Internal Cache to handle logic without waiting for Firestore Snapshots
+                let localDataRef = [...data];
+                let processedCount = 0;
+
                 for (const line of lines) {
                     const cols = line.split(",").map(c => c.trim().replace(/^"|"$/g, ''));
                     if (cols.length < 3) continue;
                     const cat = cols[0] || "未分類", title = cols[1], ds = cols[2], ts = new Date(ds).getTime();
                     if (!title || isNaN(ts)) continue;
-                    let timer = data.find(t => t.title === title && t.category === cat);
+                    
+                    // Search in memory reference
+                    let timer = localDataRef.find(t => t.title === title && t.category === cat);
+                    
                     if (timer) {
+                        // Strict check for timestamp duplication (1 second tolerance)
                         if (!timer.logs.some(l => Math.abs(l.timestamp - ts) < 1000)) {
                             timer.logs.push({ id: Date.now() + Math.random(), timestamp: ts, memo: cols[3] || "" });
                             timer.logs.sort((a,b) => b.timestamp - a.timestamp);
                             await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', timer.id), { logs: timer.logs });
+                            processedCount++;
                         }
                     } else {
+                        // Create new timer and update memory reference immediately
                         const nid = (Date.now() + Math.random()).toString();
                         const nt = { id: nid, title, category: cat, isExpanded: false, logs: [{ id: Date.now() + Math.random(), timestamp: ts, memo: cols[3] || "" }] };
+                        localDataRef.push(nt);
                         await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', nid), nt);
+                        processedCount++;
                     }
                 }
-                alert('統合完了');
+                alert(`${processedCount}件の新規データを統合しました。重複はスキップされました。`);
             };
             reader.readAsArrayBuffer(f);
         };
