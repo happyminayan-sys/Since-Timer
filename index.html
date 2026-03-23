@@ -13,6 +13,7 @@
         .timeline-dot { position: absolute; left: 0; top: 6px; width: 16px; height: 16px; background-color: #0ea5e9; border: 3px solid #fff; border-radius: 50%; z-index: 10; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .img-preview { max-height: 120px; object-fit: cover; border-radius: 8px; }
     </style>
 </head>
 <body class="text-slate-900 pb-12">
@@ -37,7 +38,9 @@
                         <h1 class="text-2xl font-black tracking-tighter text-slate-800">Timeline Since</h1>
                         <p class="text-xs text-slate-500 font-medium italic" id="syncStatus">Syncing...</p>
                     </div>
-                    <button onclick="handleLogout()" class="text-[10px] text-slate-400 hover:text-red-500 underline">ログアウト</button>
+                    <div class="flex flex-col items-end gap-1">
+                        <button onclick="handleLogout()" class="text-[10px] text-slate-400 hover:text-red-500 underline mb-1">ログアウト</button>
+                    </div>
                 </div>
 
                 <div class="flex gap-2 items-center mb-6">
@@ -118,6 +121,20 @@
                     </div>
                 </div>
                 <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">写真を追加</label>
+                    <div class="mt-1 flex flex-col items-center gap-2">
+                        <label class="w-full flex items-center justify-center gap-2 py-2 border-2 border-dashed border-slate-200 rounded-lg text-slate-400 cursor-pointer hover:bg-slate-50 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            <span class="text-xs font-bold">画像を選択</span>
+                            <input type="file" id="newLogPhoto" class="hidden" accept="image/*" onchange="handlePhotoSelect(event)">
+                        </label>
+                        <div id="photoPreviewContainer" class="hidden w-full relative">
+                            <img id="photoPreview" src="" class="w-full h-32 object-cover rounded-lg border">
+                            <button onclick="removeSelectedPhoto()" class="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+                        </div>
+                    </div>
+                </div>
+                <div>
                     <label class="text-[10px] font-bold text-slate-400 uppercase">メモ</label>
                     <textarea id="newLogMemo" class="w-full border rounded-lg p-2 mt-1 text-sm h-24 resize-none outline-none border-slate-200"></textarea>
                 </div>
@@ -143,14 +160,16 @@
         </div>
     </div>
 
+    <!-- Image Detail Modal -->
+    <div id="imageModal" class="fixed inset-0 bg-black/90 hidden items-center justify-center p-4 z-[250] cursor-pointer" onclick="closeModal('image')">
+        <img id="imageModalContent" class="max-w-full max-h-full rounded-lg shadow-2xl">
+    </div>
+
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
         import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
         import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, query } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
-        // ==========================================
-        // Firebase Config: timer-d7f73
-        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyC6TKgRNRFhm023uAtTnXyJXHcQtO4i4nA",
             authDomain: "timer-d7f73.firebaseapp.com",
@@ -166,7 +185,6 @@
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
-
         const currentAppId = typeof __app_id !== 'undefined' ? __app_id : 'since-timer-cloud';
 
         let data = [];
@@ -175,6 +193,7 @@
         let sortMode = 'recent'; 
         let currentEditingTimerId = null;
         let currentEditingLogId = null;
+        let currentSelectedPhotoBase64 = null;
 
         onAuthStateChanged(auth, async (u) => {
             if (u && !u.isAnonymous) {
@@ -243,7 +262,42 @@
             return res;
         }
 
-        // Logic Fix: Duplicate Prevention Import Protocol
+        // Logic: Resize image to save Firestore storage ROI
+        window.handlePhotoSelect = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 800;
+                    let width = img.width;
+                    let height = img.height;
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    currentSelectedPhotoBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                    document.getElementById('photoPreview').src = currentSelectedPhotoBase64;
+                    document.getElementById('photoPreviewContainer').classList.remove('hidden');
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.removeSelectedPhoto = () => {
+            currentSelectedPhotoBase64 = null;
+            document.getElementById('photoPreview').src = "";
+            document.getElementById('photoPreviewContainer').classList.add('hidden');
+            document.getElementById('newLogPhoto').value = "";
+        };
+
         window.importSpreadsheetCSV = async (e) => {
             const f = e.target.files[0]; if (!f) return;
             const reader = new FileReader();
@@ -252,22 +306,15 @@
                 let text = new TextDecoder("utf-8").decode(buffer);
                 if (text.includes('\uFFFD')) text = new TextDecoder("shift-jis").decode(buffer);
                 const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
-                
-                // Internal Cache to handle logic without waiting for Firestore Snapshots
                 let localDataRef = [...data];
                 let processedCount = 0;
-
                 for (const line of lines) {
                     const cols = line.split(",").map(c => c.trim().replace(/^"|"$/g, ''));
                     if (cols.length < 3) continue;
                     const cat = cols[0] || "未分類", title = cols[1], ds = cols[2], ts = new Date(ds).getTime();
                     if (!title || isNaN(ts)) continue;
-                    
-                    // Search in memory reference
                     let timer = localDataRef.find(t => t.title === title && t.category === cat);
-                    
                     if (timer) {
-                        // Strict check for timestamp duplication (1 second tolerance)
                         if (!timer.logs.some(l => Math.abs(l.timestamp - ts) < 1000)) {
                             timer.logs.push({ id: Date.now() + Math.random(), timestamp: ts, memo: cols[3] || "" });
                             timer.logs.sort((a,b) => b.timestamp - a.timestamp);
@@ -275,7 +322,6 @@
                             processedCount++;
                         }
                     } else {
-                        // Create new timer and update memory reference immediately
                         const nid = (Date.now() + Math.random()).toString();
                         const nt = { id: nid, title, category: cat, isExpanded: false, logs: [{ id: Date.now() + Math.random(), timestamp: ts, memo: cols[3] || "" }] };
                         localDataRef.push(nt);
@@ -283,13 +329,13 @@
                         processedCount++;
                     }
                 }
-                alert(`${processedCount}件の新規データを統合しました。重複はスキップされました。`);
+                alert(`${processedCount}件の新規データを統合しました。`);
             };
             reader.readAsArrayBuffer(f);
         };
 
         window.importJSON = async (e) => {
-            const f = e.target.files[0]; if (!f || !confirm("クラウド上のデータへ追加・統合されます。よろしいですか？")) return;
+            const f = e.target.files[0]; if (!f || !confirm("既存データへ追加・統合されます。よろしいですか？")) return;
             const reader = new FileReader();
             reader.onload = async (ev) => {
                 try {
@@ -301,7 +347,7 @@
                         }
                         alert('JSONデータの復旧が完了しました。');
                     }
-                } catch (err) { alert('読み込みに失敗しました。'); }
+                } catch (err) { alert('読み込み失敗'); }
             };
             reader.readAsText(f);
         };
@@ -325,12 +371,18 @@
                 }
             }
             if (type === 'log') {
+                removeSelectedPhoto();
                 if (logId) {
                     const t = data.find(t => t.id === id.toString()); const l = t.logs.find(l => l.id === logId);
                     const ld = new Date(l.timestamp); ld.setMinutes(ld.getMinutes() - ld.getTimezoneOffset());
                     document.getElementById('logModalTitle').innerText = "履歴を編集";
                     document.getElementById('newLogDate').value = ld.toISOString().slice(0, 16);
                     document.getElementById('newLogMemo').value = l.memo || "";
+                    if (l.image) {
+                        currentSelectedPhotoBase64 = l.image;
+                        document.getElementById('photoPreview').src = l.image;
+                        document.getElementById('photoPreviewContainer').classList.remove('hidden');
+                    }
                     document.getElementById('logSubmitBtn').setAttribute('onclick', 'updateLog()');
                 } else {
                     document.getElementById('logModalTitle').innerText = "履歴追加";
@@ -383,7 +435,7 @@
             if (!ds) return;
             const t = data.find(t => t.id === currentEditingTimerId.toString());
             if (t) {
-                const logs = [...t.logs, { id: Date.now(), timestamp: new Date(ds).getTime(), memo }].sort((a,b) => b.timestamp - a.timestamp);
+                const logs = [...t.logs, { id: Date.now(), timestamp: new Date(ds).getTime(), memo, image: currentSelectedPhotoBase64 }].sort((a,b) => b.timestamp - a.timestamp);
                 await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', t.id), { logs: logs, isExpanded: true });
                 closeModal('log');
             }
@@ -392,7 +444,7 @@
         window.updateLog = async () => {
             const ds = document.getElementById('newLogDate').value, memo = document.getElementById('newLogMemo').value.trim();
             const t = data.find(t => t.id === currentEditingTimerId.toString());
-            const logs = t.logs.map(l => l.id === currentEditingLogId ? { ...l, timestamp: new Date(ds).getTime(), memo } : l).sort((a,b) => b.timestamp - a.timestamp);
+            const logs = t.logs.map(l => l.id === currentEditingLogId ? { ...l, timestamp: new Date(ds).getTime(), memo, image: currentSelectedPhotoBase64 } : l).sort((a,b) => b.timestamp - a.timestamp);
             await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', t.id), { logs: logs, isExpanded: true });
             closeModal('log');
         };
@@ -400,6 +452,7 @@
         window.toggleExpand = async (id) => { const t = data.find(t => t.id === id.toString()); await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id.toString()), { isExpanded: !t.isExpanded }); };
         window.filterCategory = (cat) => { selectedCategory = cat; renderCategories(); render(); };
         window.updateSort = (mode) => { sortMode = mode; render(); };
+        window.zoomImage = (src) => { document.getElementById('imageModalContent').src = src; document.getElementById('imageModal').style.display = 'flex'; };
 
         window.exportCSV = () => {
             const header = ["Category", "Title", "LogDate", "LogMemo"];
@@ -422,9 +475,7 @@
         }
         function renderCategories() {
             const cats = ['すべて', ...new Set(data.map(t => t.category))].sort();
-            document.getElementById('categoryTabs').innerHTML = cats.map(cat => `<button onclick="filterCategory('${cat}')" class="${selectedCategory === cat ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 border border-slate-200'} px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition">
-                    ${cat}
-                </button>`).join('');
+            document.getElementById('categoryTabs').innerHTML = cats.map(cat => `<button onclick="filterCategory('${cat}')" class="${selectedCategory === cat ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 border border-slate-200'} px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition">${cat}</button>`).join('');
         }
         
         function render() {
@@ -459,7 +510,22 @@
                         const rel = formatRelativeTime(log.timestamp);
                         const interval = idx < timer.logs.length - 1 ? calculateInterval(log.timestamp, timer.logs[idx+1].timestamp) : null;
                         const badgeClass = rel.isFuture ? 'bg-orange-500 text-white' : 'bg-indigo-700 text-white';
-                        return `<div class="relative pl-8 group"><div class="timeline-dot"></div><div class="flex justify-between items-start"><div class="flex-1" onclick="event.stopPropagation(); openModal('log', '${timer.id}', ${log.id})"><div class="flex items-center gap-2 mb-1"><span class="text-[10px] font-black px-2 py-0.5 rounded shadow-sm ${badgeClass}">${rel.text}</span><span class="text-[10px] text-slate-400 font-medium">${new Date(log.timestamp).toLocaleDateString()}</span></div>${interval ? `<div class="text-[10px] text-sky-600 font-black tracking-tight mb-1 bg-sky-50 px-1.5 py-0.5 rounded inline-block border border-sky-100">${interval}</div>` : ''}${log.memo ? `<p class="text-[11px] text-slate-500 mt-1 bg-slate-50 p-2 rounded-lg border border-slate-100">${log.memo.replace(/\n/g, '<br>')}</p>` : ''}</div><button onclick="event.stopPropagation(); deleteLog('${timer.id}', ${log.id})" class="p-1 text-slate-300 hover:text-red-400 transition ml-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button></div></div>`;
+                        return `
+                            <div class="relative pl-8 group">
+                                <div class="timeline-dot"></div>
+                                <div class="flex justify-between items-start">
+                                    <div class="flex-1" onclick="event.stopPropagation(); openModal('log', '${timer.id}', ${log.id})">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="text-[10px] font-black px-2 py-0.5 rounded shadow-sm ${badgeClass}">${rel.text}</span>
+                                            <span class="text-[10px] text-slate-400 font-medium">${new Date(log.timestamp).toLocaleDateString()}</span>
+                                        </div>
+                                        ${interval ? `<div class="text-[10px] text-sky-600 font-black tracking-tight mb-1 bg-sky-50 px-1.5 py-0.5 rounded inline-block border border-sky-100">${interval}</div>` : ''}
+                                        ${log.memo ? `<p class="text-[11px] text-slate-500 mt-1 bg-slate-50 p-2 rounded-lg border border-slate-100">${log.memo.replace(/\n/g, '<br>')}</p>` : ''}
+                                        ${log.image ? `<img src="${log.image}" onclick="event.stopPropagation(); zoomImage('${log.image}')" class="mt-2 w-24 h-24 object-cover rounded-lg border-2 border-white shadow-sm hover:scale-105 transition cursor-zoom-in">` : ''}
+                                    </div>
+                                    <button onclick="event.stopPropagation(); deleteLog('${timer.id}', ${log.id})" class="p-1 text-slate-300 hover:text-red-400 transition ml-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+                                </div>
+                            </div>`;
                     }).join('')}</div>`;
                 }
                 const latestBadgeClass = relTime ? (relTime.isFuture ? 'bg-orange-500 text-white' : 'bg-indigo-700 text-white') : '';
