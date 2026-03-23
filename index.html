@@ -14,6 +14,8 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .img-preview { max-height: 120px; object-fit: cover; border-radius: 8px; }
+        .color-dot { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
+        .color-dot.active { border-color: #64748b; transform: scale(1.2); }
     </style>
 </head>
 <body class="text-slate-900 pb-12">
@@ -78,7 +80,7 @@
         </div>
     </div>
 
-    <!-- Modals -->
+    <!-- Modal: Timer Setting -->
     <div id="timerModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[100] backdrop-blur-sm">
         <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
             <h3 class="text-lg font-bold mb-4" id="timerModalTitle">タイマー設定</h3>
@@ -92,6 +94,18 @@
                     <label class="text-[10px] font-bold text-slate-400 uppercase">タイトル</label>
                     <input type="text" id="newTimerTitle" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm">
                 </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase">テーマカラー (任意)</label>
+                    <div class="flex gap-3 mt-2" id="colorPicker">
+                        <div class="color-dot active bg-white border-slate-200" title="自動" data-color="default"></div>
+                        <div class="color-dot bg-indigo-100" title="藍" data-color="indigo"></div>
+                        <div class="color-dot bg-orange-100" title="橙" data-color="orange"></div>
+                        <div class="color-dot bg-emerald-100" title="緑" data-color="emerald"></div>
+                        <div class="color-dot bg-rose-100" title="紅" data-color="rose"></div>
+                        <div class="color-dot bg-sky-100" title="空" data-color="sky"></div>
+                        <div class="color-dot bg-amber-100" title="琥珀" data-color="amber"></div>
+                    </div>
+                </div>
                 <div id="initialDateGroup">
                     <label class="text-[10px] font-bold text-slate-400 uppercase">初回日時</label>
                     <div class="flex gap-2 items-center">
@@ -103,7 +117,7 @@
                 </div>
                 <div class="flex gap-2 pt-2">
                     <button onclick="closeModal('timer')" class="flex-1 py-3 text-slate-500 font-bold">中止</button>
-                    <button id="timerSubmitBtn" onclick="createTimer()" class="flex-1 py-3 bg-slate-800 text-white rounded-xl font-bold">保存</button>
+                    <button id="timerSubmitBtn" class="flex-1 py-3 bg-slate-800 text-white rounded-xl font-bold">保存</button>
                 </div>
             </div>
         </div>
@@ -193,6 +207,7 @@
         let currentEditingTimerId = null;
         let currentEditingLogId = null;
         let currentSelectedPhotoBase64 = null;
+        let currentSelectedColor = 'default';
 
         onAuthStateChanged(auth, async (u) => {
             if (u && !u.isAnonymous) {
@@ -296,7 +311,15 @@
             document.getElementById('newLogPhoto').value = "";
         };
 
-        // Logic Fix: Strengthened CSV Import with Error Catching
+        // Color Picker Logic
+        document.querySelectorAll('.color-dot').forEach(dot => {
+            dot.onclick = () => {
+                document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+                dot.classList.add('active');
+                currentSelectedColor = dot.dataset.color;
+            };
+        });
+
         window.importSpreadsheetCSV = async (e) => {
             const f = e.target.files[0]; if (!f) return;
             const reader = new FileReader();
@@ -307,20 +330,12 @@
                 const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
                 let localDataRef = [...data];
                 let processedCount = 0;
-                
                 for (const line of lines) {
                     try {
                         const cols = line.split(",").map(c => c.trim().replace(/^"|"$/g, ''));
-                        if (cols.length < 3) continue; // Minimum columns required (Cat, Title, Date)
-                        
-                        const cat = cols[0] || "未分類", title = cols[1], ds = cols[2];
-                        const ts = new Date(ds).getTime();
-                        
-                        if (!title || isNaN(ts)) {
-                            console.warn(`Skipping line due to invalid format: ${line}`);
-                            continue;
-                        }
-
+                        if (cols.length < 3) continue;
+                        const cat = cols[0] || "未分類", title = cols[1], ds = cols[2], ts = new Date(ds).getTime();
+                        if (!title || isNaN(ts)) continue;
                         let timer = localDataRef.find(t => t.title === title && t.category === cat);
                         if (timer) {
                             if (!timer.logs.some(l => Math.abs(l.timestamp - ts) < 1000)) {
@@ -331,14 +346,12 @@
                             }
                         } else {
                             const nid = (Date.now() + Math.random()).toString();
-                            const nt = { id: nid, title, category: cat, isExpanded: false, logs: [{ id: Date.now() + Math.random(), timestamp: ts, memo: cols[3] || "" }] };
+                            const nt = { id: nid, title, category: cat, color: 'default', isExpanded: false, logs: [{ id: Date.now() + Math.random(), timestamp: ts, memo: cols[3] || "" }] };
                             localDataRef.push(nt);
                             await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', nid), nt);
                             processedCount++;
                         }
-                    } catch (err) {
-                        console.error("Error processing CSV line:", err);
-                    }
+                    } catch (err) {}
                 }
                 alert(`${processedCount}件のデータを統合しました。`);
             };
@@ -346,7 +359,7 @@
         };
 
         window.importJSON = async (e) => {
-            const f = e.target.files[0]; if (!f || !confirm("既存データへ追加・統合されます。写真データも復元されます。よろしいですか？")) return;
+            const f = e.target.files[0]; if (!f || !confirm("既存データへ追加・統合されます。よろしいですか？")) return;
             const reader = new FileReader();
             reader.onload = async (ev) => {
                 try {
@@ -356,7 +369,7 @@
                             const docId = (timer.id || Date.now() + Math.random()).toString();
                             await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', docId), timer);
                         }
-                        alert('JSONデータ（写真含む）の復元が完了しました。');
+                        alert('JSON復元完了。');
                     }
                 } catch (err) { alert('JSON読み込み失敗。'); }
             };
@@ -368,17 +381,30 @@
             currentEditingTimerId = id; currentEditingLogId = logId;
             const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             const ds = now.toISOString().slice(0, 16);
+            
             if (type === 'timer') {
                 updateCategoryList();
+                document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
                 if (id) {
                     const t = data.find(t => t.id === id.toString());
-                    document.getElementById('newTimerTitle').value = t.title; document.getElementById('newTimerCategory').value = t.category;
+                    document.getElementById('timerModalTitle').innerText = "タイマー設定を編集";
+                    document.getElementById('newTimerTitle').value = t.title; 
+                    document.getElementById('newTimerCategory').value = t.category;
+                    currentSelectedColor = t.color || 'default';
+                    document.querySelector(`[data-color="${currentSelectedColor}"]`).classList.add('active');
                     document.getElementById('initialDateGroup').style.display = "none";
-                    document.getElementById('timerSubmitBtn').setAttribute('onclick', 'updateTimer()');
+                    document.getElementById('timerSubmitBtn').innerText = "更新する";
+                    document.getElementById('timerSubmitBtn').onclick = updateTimer;
                 } else {
-                    document.getElementById('newTimerTitle').value = ""; document.getElementById('newTimerCategory').value = "";
-                    document.getElementById('newTimerInitialDate').value = ds; document.getElementById('initialDateGroup').style.display = "block";
-                    document.getElementById('timerSubmitBtn').setAttribute('onclick', 'createTimer()');
+                    document.getElementById('timerModalTitle').innerText = "新規タイマー設定";
+                    document.getElementById('newTimerTitle').value = ""; 
+                    document.getElementById('newTimerCategory').value = "";
+                    currentSelectedColor = 'default';
+                    document.querySelector(`[data-color="default"]`).classList.add('active');
+                    document.getElementById('newTimerInitialDate').value = ds; 
+                    document.getElementById('initialDateGroup').style.display = "block";
+                    document.getElementById('timerSubmitBtn').innerText = "作成する";
+                    document.getElementById('timerSubmitBtn').onclick = createTimer;
                 }
             }
             if (type === 'log') {
@@ -430,14 +456,16 @@
         window.createTimer = async () => {
             const title = document.getElementById('newTimerTitle').value.trim(), cat = document.getElementById('newTimerCategory').value.trim() || '未分類', date = document.getElementById('newTimerInitialDate').value;
             if (!title) return;
-            const nid = Date.now().toString(), nt = { id: nid, title, category: cat, isExpanded: false, logs: date ? [{ id: Date.now()+1, timestamp: new Date(date).getTime(), memo: document.getElementById('newTimerInitialMemo').value.trim() }] : [] };
+            const nid = Date.now().toString(), nt = { id: nid, title, category: cat, color: currentSelectedColor, isExpanded: false, logs: date ? [{ id: Date.now()+1, timestamp: new Date(date).getTime(), memo: document.getElementById('newTimerInitialMemo').value.trim() }] : [] };
             await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', nid), nt);
             closeModal('timer');
         };
 
         window.updateTimer = async () => {
-            const title = document.getElementById('newTimerTitle').value.trim(), cat = document.getElementById('newTimerCategory').value.trim() || '未分類';
-            await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', currentEditingTimerId.toString()), { title, category: cat });
+            const title = document.getElementById('newTimerTitle').value.trim();
+            const cat = document.getElementById('newTimerCategory').value.trim() || '未分類';
+            if (!title) return;
+            await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', currentEditingTimerId.toString()), { title, category: cat, color: currentSelectedColor });
             closeModal('timer');
         };
 
@@ -513,7 +541,25 @@
             filtered.forEach(timer => {
                 const latest = timer.logs[0];
                 const relTime = latest ? formatRelativeTime(latest.timestamp) : null;
-                const card = document.createElement('div'); card.className = "bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-4";
+                
+                // Logical Background Color Resolution
+                let cardColorClass = 'bg-white border-slate-200';
+                if (timer.color && timer.color !== 'default') {
+                    const palette = {
+                        indigo: 'bg-indigo-50/50 border-indigo-200',
+                        orange: 'bg-orange-50/50 border-orange-200',
+                        emerald: 'bg-emerald-50/50 border-emerald-200',
+                        rose: 'bg-rose-50/50 border-rose-200',
+                        sky: 'bg-sky-50/50 border-sky-200',
+                        amber: 'bg-amber-50/50 border-amber-200'
+                    };
+                    cardColorClass = palette[timer.color] || cardColorClass;
+                } else if (relTime) {
+                    cardColorClass = relTime.isFuture ? 'bg-orange-50/50 border-orange-200' : 'bg-indigo-50/50 border-indigo-200';
+                }
+
+                const card = document.createElement('div'); 
+                card.className = `rounded-2xl shadow-sm border overflow-hidden mb-4 transition-all duration-300 ${cardColorClass}`;
                 
                 let timeline = '';
                 if (timer.isExpanded && timer.logs.length > 0) {
@@ -530,17 +576,40 @@
                                             <span class="text-[10px] font-black px-2 py-0.5 rounded shadow-sm ${badgeClass}">${rel.text}</span>
                                             <span class="text-[10px] text-slate-400 font-medium">${new Date(log.timestamp).toLocaleDateString()}</span>
                                         </div>
-                                        ${interval ? `<div class="text-[10px] text-sky-600 font-black tracking-tight mb-1 bg-sky-50 px-1.5 py-0.5 rounded inline-block border border-sky-100">${interval}</div>` : ''}
-                                        ${log.memo ? `<p class="text-[11px] text-slate-500 mt-1 bg-slate-50 p-2 rounded-lg border border-slate-100">${log.memo.replace(/\n/g, '<br>')}</p>` : ''}
+                                        ${interval ? `<div class="text-[10px] text-sky-600 font-black tracking-tight mb-1 bg-white/80 px-1.5 py-0.5 rounded inline-block border border-sky-100">${interval}</div>` : ''}
+                                        ${log.memo ? `<p class="text-[11px] text-slate-500 mt-1 bg-white/50 p-2 rounded-lg border border-slate-100 leading-relaxed">${log.memo.replace(/\n/g, '<br>')}</p>` : ''}
                                         ${log.image ? `<img src="${log.image}" onclick="event.stopPropagation(); zoomImage('${log.image}')" class="mt-2 w-24 h-24 object-cover rounded-lg border-2 border-white shadow-sm hover:scale-105 transition cursor-zoom-in">` : ''}
                                     </div>
-                                    <button onclick="event.stopPropagation(); deleteLog('${timer.id}', ${log.id})" class="p-1 text-slate-300 hover:text-red-400 transition ml-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+                                    <button onclick="event.stopPropagation(); deleteLog('${timer.id}', ${log.id})" class="p-2 text-slate-400 hover:bg-red-100 hover:text-red-600 rounded-lg transition ml-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
                                 </div>
                             </div>`;
                     }).join('')}</div>`;
                 }
                 const latestBadgeClass = relTime ? (relTime.isFuture ? 'bg-orange-500 text-white' : 'bg-indigo-700 text-white') : '';
-                card.innerHTML = `<div class="p-5 flex justify-between items-start cursor-pointer hover:bg-slate-50 transition" onclick="toggleExpand('${timer.id}')"><div class="flex-1"><div class="flex items-center gap-2 mb-2"><span class="text-[9px] font-black uppercase px-2 py-0.5 bg-slate-100 text-slate-500 rounded">${timer.category}</span>${relTime ? `<span class="text-[10px] font-black px-2 py-0.5 rounded shadow-sm ${latestBadgeClass} mono">${relTime.text}</span>` : ''}</div><div class="flex items-center gap-2"><h2 class="text-lg font-bold text-slate-800 tracking-tight">${timer.title}</h2><button onclick="event.stopPropagation(); openModal('timer', '${timer.id}')" class="text-slate-300 hover:text-sky-500 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></button></div></div><div class="flex flex-col items-end gap-3" onclick="event.stopPropagation()"><button onclick="deleteTimer('${timer.id}')" class="text-slate-400 hover:text-red-400 transition p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button><button onclick="openModal('log', '${timer.id}')" class="w-10 h-10 bg-sky-50 text-sky-600 rounded-full flex items-center justify-center hover:bg-sky-500 hover:text-white transition shadow-sm"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M12 4v16m8-8H4"/></svg></button></div></div>${timeline}`;
+                card.innerHTML = `
+                    <div class="p-5 flex justify-between items-start cursor-pointer hover:bg-white/40 transition" onclick="toggleExpand('${timer.id}')">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-[9px] font-black uppercase px-2 py-0.5 bg-white text-slate-500 rounded border border-slate-100">${timer.category}</span>
+                                ${relTime ? `<span class="text-[10px] font-black px-2 py-0.5 rounded shadow-sm ${latestBadgeClass} mono">${relTime.text}</span>` : ''}
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <h2 class="text-lg font-bold text-slate-800 tracking-tight">${timer.title}</h2>
+                                <button onclick="event.stopPropagation(); openModal('timer', '${timer.id}')" class="p-1.5 text-slate-400 hover:text-sky-600 hover:bg-white rounded-lg transition">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end gap-3" onclick="event.stopPropagation()">
+                            <button onclick="deleteTimer('${timer.id}')" class="p-2 text-slate-500 hover:bg-red-100 hover:text-red-600 rounded-lg transition-all" title="削除">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
+                            <button onclick="openModal('log', '${timer.id}')" class="w-10 h-10 bg-white text-sky-600 rounded-full flex items-center justify-center hover:bg-sky-500 hover:text-white transition shadow-sm border border-sky-100">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    ${timeline}`;
                 container.appendChild(card);
             });
         }
