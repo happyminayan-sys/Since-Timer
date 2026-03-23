@@ -84,7 +84,7 @@
     <div id="timerModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[100] backdrop-blur-sm">
         <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
             <h3 class="text-lg font-bold mb-4" id="timerModalTitle">タイマー設定</h3>
-            <div class="space-y-4">
+            <div class="space-y-4 text-left">
                 <div>
                     <label class="text-[10px] font-bold text-slate-400 uppercase">カテゴリ</label>
                     <input type="text" id="newTimerCategory" list="existingCategories" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm bg-transparent">
@@ -94,16 +94,20 @@
                     <label class="text-[10px] font-bold text-slate-400 uppercase">タイトル</label>
                     <input type="text" id="newTimerTitle" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm">
                 </div>
-                <div>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase">テーマカラー</label>
-                    <div class="flex gap-3 mt-2" id="colorPicker">
-                        <div class="color-dot active bg-white border-slate-300" title="自動" data-color="default"></div>
-                        <div class="color-dot bg-indigo-200" title="藍" data-color="indigo"></div>
-                        <div class="color-dot bg-orange-200" title="橙" data-color="orange"></div>
-                        <div class="color-dot bg-emerald-200" title="緑" data-color="emerald"></div>
-                        <div class="color-dot bg-rose-200" title="紅" data-color="rose"></div>
-                        <div class="color-dot bg-sky-200" title="空" data-color="sky"></div>
-                        <div class="color-dot bg-amber-200" title="琥珀" data-color="amber"></div>
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase">テーマカラー</label>
+                        <div class="flex gap-2.5 mt-2" id="colorPicker">
+                            <div class="color-dot active bg-white border-slate-300" title="自動" data-color="default"></div>
+                            <div class="color-dot bg-indigo-200" title="藍" data-color="indigo"></div>
+                            <div class="color-dot bg-orange-200" title="橙" data-color="orange"></div>
+                            <div class="color-dot bg-emerald-200" title="緑" data-color="emerald"></div>
+                            <div class="color-dot bg-rose-200" title="紅" data-color="rose"></div>
+                        </div>
+                    </div>
+                    <div class="w-24">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase">アラート（日）</label>
+                        <input type="number" id="newTimerAlertDays" placeholder="0" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm text-center">
                     </div>
                 </div>
                 <div id="initialDateGroup">
@@ -169,7 +173,7 @@
             <p class="text-xs text-slate-400 mb-6 leading-relaxed">この操作は取り消せません。本当に削除してよろしいですか？</p>
             <div class="flex gap-2">
                 <button onclick="closeModal('delete')" class="flex-1 py-3 text-slate-500 font-bold">中止</button>
-                <button id="deleteExecuteBtn" class="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold active:scale-95 transition shadow-lg shadow-red-100">削除する</button>
+                <button id="deleteExecuteBtn" class="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold active:scale-95 transition">削除する</button>
             </div>
         </div>
     </div>
@@ -183,9 +187,6 @@
         import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
         import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, query } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
-        // ==========================================
-        // Firebase Config: timer-d7f73
-        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyC6TKgRNRFhm023uAtTnXyJXHcQtO4i4nA",
             authDomain: "timer-d7f73.firebaseapp.com",
@@ -252,19 +253,19 @@
                 const remainingAfterYears = totalDays % 365;
                 const m = Math.floor(remainingAfterYears / 30.44);
                 const d = Math.floor(remainingAfterYears % 30.44);
-                return { text: `${y}年${m}ヶ月${d}日${suffix}`, isFuture: diff < 0 };
+                return { text: `${y}年${m}ヶ月${d}日${suffix}`, isFuture: diff < 0, totalDays };
             }
             if (totalDays >= 30) {
                 const m = Math.floor(totalDays / 30.44);
                 const d = Math.floor(totalDays % 30.44);
-                return { text: `${m}ヶ月${d}日${suffix}`, isFuture: diff < 0 };
+                return { text: `${m}ヶ月${d}日${suffix}`, isFuture: diff < 0, totalDays };
             }
-            if (totalDays >= 1) return { text: `${totalDays}日${suffix}`, isFuture: diff < 0 };
+            if (totalDays >= 1) return { text: `${totalDays}日${suffix}`, isFuture: diff < 0, totalDays };
             const hours = Math.floor(abs / 3600000);
-            if (hours >= 1) return { text: `${hours}時間${suffix}`, isFuture: diff < 0 };
+            if (hours >= 1) return { text: `${hours}時間${suffix}`, isFuture: diff < 0, totalDays: 0 };
             const mins = Math.floor(abs / 60000);
-            if (mins >= 1) return { text: `${mins}分${suffix}`, isFuture: diff < 0 };
-            return { text: "たった今", isFuture: diff < 0 };
+            if (mins >= 1) return { text: `${mins}分${suffix}`, isFuture: diff < 0, totalDays: 0 };
+            return { text: "たった今", isFuture: diff < 0, totalDays: 0 };
         }
 
         function calculateInterval(currentMs, prevMs) {
@@ -349,7 +350,7 @@
                             }
                         } else {
                             const nid = (Date.now() + Math.random()).toString();
-                            const nt = { id: nid, title, category: cat, color: 'default', isExpanded: false, logs: [{ id: Date.now() + Math.random(), timestamp: ts, memo: cols[3] || "" }] };
+                            const nt = { id: nid, title, category: cat, color: 'default', alertDays: 0, isExpanded: false, logs: [{ id: Date.now() + Math.random(), timestamp: ts, memo: cols[3] || "" }] };
                             localDataRef.push(nt);
                             await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', nid), nt);
                             processedCount++;
@@ -393,6 +394,7 @@
                     document.getElementById('timerModalTitle').innerText = "タイマー設定を編集";
                     document.getElementById('newTimerTitle').value = t.title; 
                     document.getElementById('newTimerCategory').value = t.category;
+                    document.getElementById('newTimerAlertDays').value = t.alertDays || 0;
                     currentSelectedColor = t.color || 'default';
                     document.querySelector(`[data-color="${currentSelectedColor}"]`).classList.add('active');
                     document.getElementById('initialDateGroup').style.display = "none";
@@ -402,6 +404,7 @@
                     document.getElementById('timerModalTitle').innerText = "新規タイマー設定";
                     document.getElementById('newTimerTitle').value = ""; 
                     document.getElementById('newTimerCategory').value = "";
+                    document.getElementById('newTimerAlertDays').value = "";
                     currentSelectedColor = 'default';
                     document.querySelector(`[data-color="default"]`).classList.add('active');
                     document.getElementById('newTimerInitialDate').value = ds; 
@@ -457,9 +460,12 @@
         };
 
         window.createTimer = async () => {
-            const title = document.getElementById('newTimerTitle').value.trim(), cat = document.getElementById('newTimerCategory').value.trim() || '未分類', date = document.getElementById('newTimerInitialDate').value;
+            const title = document.getElementById('newTimerTitle').value.trim();
+            const cat = document.getElementById('newTimerCategory').value.trim() || '未分類';
+            const alertDays = parseInt(document.getElementById('newTimerAlertDays').value) || 0;
+            const date = document.getElementById('newTimerInitialDate').value;
             if (!title) return;
-            const nid = Date.now().toString(), nt = { id: nid, title, category: cat, color: currentSelectedColor, isExpanded: false, logs: date ? [{ id: Date.now()+1, timestamp: new Date(date).getTime(), memo: document.getElementById('newTimerInitialMemo').value.trim() }] : [] };
+            const nid = Date.now().toString(), nt = { id: nid, title, category: cat, color: currentSelectedColor, alertDays: alertDays, isExpanded: false, logs: date ? [{ id: Date.now()+1, timestamp: new Date(date).getTime(), memo: document.getElementById('newTimerInitialMemo').value.trim() }] : [] };
             await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', nid), nt);
             closeModal('timer');
         };
@@ -467,8 +473,9 @@
         window.updateTimer = async () => {
             const title = document.getElementById('newTimerTitle').value.trim();
             const cat = document.getElementById('newTimerCategory').value.trim() || '未分類';
+            const alertDays = parseInt(document.getElementById('newTimerAlertDays').value) || 0;
             if (!title) return;
-            await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', currentEditingTimerId.toString()), { title, category: cat, color: currentSelectedColor });
+            await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', currentEditingTimerId.toString()), { title, category: cat, color: currentSelectedColor, alertDays: alertDays });
             closeModal('timer');
         };
 
@@ -545,7 +552,16 @@
                 const latest = timer.logs[0];
                 const relTime = latest ? formatRelativeTime(latest.timestamp) : null;
                 
-                // Logic: Increased contrast and saturated colors for visibility
+                // Logic: Logical Alerting Pulse Effect
+                let isAlerting = false;
+                if (relTime && timer.alertDays > 0) {
+                    if (relTime.isFuture) {
+                        if (relTime.totalDays <= timer.alertDays) isAlerting = true; // Future urgency
+                    } else {
+                        if (relTime.totalDays >= timer.alertDays) isAlerting = true; // Past overdue
+                    }
+                }
+
                 let cardColorClass = 'bg-white border-slate-300';
                 if (timer.color && timer.color !== 'default') {
                     const palette = {
@@ -596,7 +612,7 @@
                         <div class="flex-1">
                             <div class="flex items-center gap-2 mb-2">
                                 <span class="text-[9px] font-black uppercase px-2 py-0.5 bg-white/80 text-slate-600 rounded border border-slate-300 shadow-sm">${timer.category}</span>
-                                ${relTime ? `<span class="text-[10px] font-black px-2 py-0.5 rounded shadow-md ${latestBadgeClass} mono">${relTime.text}</span>` : ''}
+                                ${relTime ? `<span class="text-[10px] font-black px-2 py-0.5 rounded shadow-md ${latestBadgeClass} mono ${isAlerting ? 'animate-pulse' : ''}">${relTime.text}</span>` : ''}
                             </div>
                             <div class="flex items-center gap-2">
                                 <h2 class="text-lg font-bold text-slate-800 tracking-tight">${timer.title}</h2>
