@@ -252,7 +252,6 @@
             });
         }
 
-        // Logic Update: Calculate Total Days for Action Guidance
         function formatRelativeTime(ms) {
             const diff = Date.now() - ms;
             const abs = Math.abs(diff);
@@ -282,7 +281,6 @@
                 }
             }
 
-            // Logic: High Impact Label (Actual countdown/since days)
             const actionLabel = diff < 0 ? `あと ${totalDaysFloor}日` : `${totalDaysFloor}日経過`;
 
             return { 
@@ -594,12 +592,20 @@
                 const latest = timer.logs[0];
                 const relTime = latest ? formatRelativeTime(latest.timestamp) : null;
                 
+                // Logic Fix: Alert Awareness Logic
                 let isAlerting = false;
+                let daysToAlert = 0;
                 if (relTime && timer.alertValue > 0) {
                     const unitScale = { days: 1, weeks: 7, months: 30.44 };
-                    const thresholdDays = timer.alertValue * (unitScale[timer.alertUnit] || 1);
-                    if (relTime.isFuture) { if (relTime.totalDays <= thresholdDays) isAlerting = true; }
-                    else { if (relTime.totalDays >= thresholdDays) isAlerting = true; }
+                    const thresholdDays = Math.floor(timer.alertValue * (unitScale[timer.alertUnit] || 1));
+                    
+                    if (relTime.isFuture) {
+                        daysToAlert = relTime.totalDays - thresholdDays;
+                        if (relTime.totalDays <= thresholdDays) isAlerting = true;
+                    } else {
+                        daysToAlert = thresholdDays - relTime.totalDays;
+                        if (relTime.totalDays >= thresholdDays) isAlerting = true;
+                    }
                 }
 
                 let cardColorClass = 'bg-white border-slate-300';
@@ -616,8 +622,9 @@
                     cardColorClass = relTime.isFuture ? 'bg-orange-100 border-orange-300' : 'bg-indigo-100 border-indigo-300';
                 }
 
+                // Visual Fix: Emphasize alerting card with red ring
                 const card = document.createElement('div'); 
-                card.className = `rounded-2xl shadow-md border overflow-hidden mb-4 transition-all duration-300 ${cardColorClass}`;
+                card.className = `rounded-2xl shadow-md border overflow-hidden mb-4 transition-all duration-300 ${cardColorClass} ${isAlerting ? 'ring-2 ring-red-500' : ''}`;
                 
                 let timeline = '';
                 if (timer.isExpanded && timer.logs.length > 0) {
@@ -625,7 +632,6 @@
                         const rel = formatRelativeTime(log.timestamp);
                         const interval = idx < timer.logs.length - 1 ? calculateInterval(log.timestamp, timer.logs[idx+1].timestamp) : null;
                         const badgeClass = rel.isFuture ? 'bg-orange-600 text-white' : 'bg-indigo-800 text-white';
-                        // Display both Action Label and Detailed Breakdown
                         const displayBadgeText = `${rel.actionLabel} (${rel.text})`;
                         return `
                             <div class="relative pl-8 group">
@@ -647,15 +653,21 @@
                             </div>`;
                     }).join('')}</div>`;
                 }
-                const latestBadgeClass = relTime ? (relTime.isFuture ? 'bg-orange-600 text-white' : 'bg-indigo-800 text-white') : '';
+                
+                // Logic: Contextual Badge Coloring (Alert Red vs Normal)
+                const latestBadgeClass = relTime ? (isAlerting ? 'bg-red-600 text-white animate-pulse' : (relTime.isFuture ? 'bg-orange-600 text-white' : 'bg-indigo-800 text-white')) : '';
                 const latestDisplayBadgeText = relTime ? `${relTime.actionLabel} (${relTime.text})` : '';
                 
+                // Logic: Alert Countdown Info Text
+                const alertInfoText = (timer.alertValue > 0 && !isAlerting && daysToAlert > 0) ? `<span class="text-[10px] font-bold text-red-600 ml-2">アラートまで あと ${daysToAlert}日</span>` : '';
+
                 card.innerHTML = `
                     <div class="p-5 flex justify-between items-start cursor-pointer hover:bg-white/20 transition" onclick="toggleExpand('${timer.id}')">
                         <div class="flex-1">
                             <div class="flex items-center gap-2 mb-2">
                                 <span class="text-[9px] font-black uppercase px-2 py-0.5 bg-white/80 text-slate-600 rounded border border-slate-300 shadow-sm">${timer.category}</span>
-                                ${relTime ? `<span class="text-[10px] font-black px-2 py-0.5 rounded shadow-md ${latestBadgeClass} mono ${isAlerting ? 'animate-pulse' : ''}">${latestDisplayBadgeText}</span>` : ''}
+                                ${relTime ? `<span class="text-[10px] font-black px-2 py-0.5 rounded shadow-md ${latestBadgeClass} mono">${latestDisplayBadgeText}</span>` : ''}
+                                ${alertInfoText}
                             </div>
                             <div class="flex items-center gap-2">
                                 <h2 class="text-lg font-bold text-slate-800 tracking-tight">${timer.title}</h2>
