@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timeline Context Manager Cloud Pro (Multi-Metric Dashboard)</title>
+    <title>Timeline Context Manager Cloud Pro (Precision Display v1)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap');
@@ -44,12 +44,13 @@
                     <button onclick="handleLogout()" class="text-[10px] text-slate-400 hover:text-red-500 underline">ログアウト</button>
                 </div>
 
+                <!-- Multi-Indicator Dashboard -->
                 <div class="bg-slate-900 rounded-3xl p-6 mb-6 shadow-2xl relative border-t border-white/10">
                     <button onclick="openModal('settings')" class="absolute top-4 right-4 text-slate-500 hover:text-white transition z-10">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     </button>
                     <div id="dashboardTabs" class="flex gap-4 mb-4 border-b border-white/10 pb-2 mr-8 overflow-x-auto no-scrollbar"></div>
-                    <div id="dashboardContent" class="text-center py-2 flex flex-col items-center min-h-[170px] justify-center"></div>
+                    <div id="dashboardContent" class="text-center py-2 flex flex-col items-center min-h-[170px] justify-center text-white"></div>
                 </div>
 
                 <div class="flex gap-2 items-center mb-6">
@@ -64,7 +65,7 @@
                     </label>
                     <button onclick="exportJSON()" class="p-3 bg-white border border-slate-200 text-slate-500 rounded-xl shadow-sm hover:bg-slate-50 active:scale-95 transition-all"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg></button>
                     <label class="p-3 bg-white border border-slate-200 text-slate-500 rounded-xl shadow-sm hover:bg-slate-50 active:scale-95 transition-all cursor-pointer">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l4 4m-4-4h12"/></svg>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l4 4m-4-4h12"/></svg>
                         <input type="file" class="hidden" accept=".json" onchange="importJSON(event)">
                     </label>
                 </div>
@@ -100,19 +101,11 @@
                     <div><label class="text-[10px] font-bold text-slate-400 uppercase">生年月日</label><input type="date" id="settingsBirthDate" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm"></div>
                     <div><label class="text-[10px] font-bold text-slate-400 uppercase">寿命目安</label><input type="number" id="settingsExpectedAge" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm"></div>
                 </div>
-
                 <div class="pt-4 border-t border-slate-100">
-                    <label class="text-[10px] font-black text-slate-500 uppercase flex justify-between items-center mb-2">
-                        <span>自由目標 (資産・健康・習慣等)</span>
-                        <button onclick="addNewGoalRow()" class="text-sky-500 hover:text-sky-600 text-[10px] font-bold">+ 目標を追加</button>
-                    </label>
+                    <label class="text-[10px] font-black text-slate-500 uppercase flex justify-between items-center mb-2"><span>自由目標</span><button onclick="addNewGoalRow()" class="text-sky-500 hover:text-sky-600 text-[10px] font-bold">+ 追加</button></label>
                     <div id="goalRowsContainer" class="space-y-4"></div>
                 </div>
-
-                <div class="flex gap-2 pt-4">
-                    <button onclick="closeModal('settings')" class="flex-1 py-3 text-slate-500 font-bold">閉じる</button>
-                    <button onclick="saveProfileSettings()" class="flex-1 py-3 bg-amber-500 text-white rounded-xl font-bold shadow-lg">設定を保存</button>
-                </div>
+                <div class="flex gap-2 pt-4"><button onclick="closeModal('settings')" class="flex-1 py-3 text-slate-500 font-bold">閉じる</button><button onclick="saveProfileSettings()" class="flex-1 py-3 bg-amber-500 text-white rounded-xl font-bold">保存</button></div>
             </div>
         </div>
     </div>
@@ -122,9 +115,9 @@
             <h3 class="text-lg font-bold mb-4 text-slate-800" id="logModalTitle">履歴追加</h3>
             <div class="space-y-4">
                 <input type="datetime-local" id="newLogDate" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm">
-                <div class="grid grid-cols-2 gap-2 mt-1">
-                    <label class="flex flex-col items-center justify-center gap-1 py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 cursor-pointer hover:bg-slate-50 transition active:scale-95"><svg class="w-6 h-6 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span class="text-[10px] font-bold">撮影</span><input type="file" class="hidden" accept="image/*" capture="environment" onchange="handlePhotoSelect(event)"></label>
-                    <label class="flex flex-col items-center justify-center gap-1 py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 cursor-pointer hover:bg-slate-50 transition active:scale-95"><svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span class="text-[10px] font-bold">選択</span><input type="file" class="hidden" accept="image/*" onchange="handlePhotoSelect(event)"></label>
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="flex flex-col items-center py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 cursor-pointer hover:bg-slate-50"><svg class="w-6 h-6 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span class="text-[10px] font-bold mt-1">撮影</span><input type="file" class="hidden" accept="image/*" capture="environment" onchange="handlePhotoSelect(event)"></label>
+                    <label class="flex flex-col items-center py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 cursor-pointer hover:bg-slate-50"><svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span class="text-[10px] font-bold mt-1">選択</span><input type="file" class="hidden" accept="image/*" onchange="handlePhotoSelect(event)"></label>
                 </div>
                 <div id="photoPreviewContainer" class="hidden relative"><img id="photoPreview" class="w-full h-32 object-cover rounded-lg border"><button onclick="removeSelectedPhoto()" class="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button></div>
                 <textarea id="newLogMemo" class="w-full border rounded-lg p-2 text-sm h-24 resize-none border-slate-200" placeholder="メモを入力"></textarea>
@@ -149,14 +142,7 @@
         let data = []; let user = null; let selectedCategory = 'すべて'; let sortMode = 'recent'; let dashboardTab = 'day'; 
         let currentSelectedPhotoBase64 = null; let currentSelectedColor = 'default'; let currentEditingTimerId = null; let currentEditingLogId = null;
 
-        let lifePlan = {
-            birthDate: "1967-12-08",
-            expectedAge: 90,
-            goals: [
-                { id: 'g1', title: "資産目標", startValue: 1000000, current: 35000000, target: 50000000, unit: "円", startDate: "2024-01-01", endDate: "2029-12-08" },
-                { id: 'g2', title: "ダイエット", startValue: 55, current: 52, target: 48, unit: "kg", startDate: "2026-01-01", endDate: "2026-12-31" }
-            ]
-        };
+        let lifePlan = { birthDate: "1967-12-08", expectedAge: 90, goals: [{ id: 'g1', title: "資産目標", startValue: 1000000, current: 35000000, target: 50000000, unit: "円", startDate: "2024-01-01", endDate: "2029-12-08" }] };
 
         onAuthStateChanged(auth, async (u) => {
             if (u && !u.isAnonymous) { user = u; document.getElementById('loginOverlay').classList.add('hidden'); document.getElementById('appRoot').classList.remove('hidden'); await loadProfileSettings(); setupRealtimeSync(); }
@@ -182,29 +168,37 @@
             const birth = document.getElementById('settingsBirthDate').value; const exp = parseInt(document.getElementById('settingsExpectedAge').value);
             const goals = []; document.querySelectorAll('.goal-row').forEach(row => {
                 const title = row.querySelector('.goal-title-input').value; if (!title) return;
-                goals.push({
-                    id: row.dataset.id, title, unit: row.querySelector('.goal-unit-input').value || "",
-                    startValue: parseFloat(row.querySelector('.goal-start-val-input').value) || 0,
-                    current: parseFloat(row.querySelector('.goal-current-val-input').value) || 0,
-                    target: parseFloat(row.querySelector('.goal-target-val-input').value) || 0,
-                    startDate: row.querySelector('.goal-start-date-input').value,
-                    endDate: row.querySelector('.goal-end-date-input').value
-                });
+                goals.push({ id: row.dataset.id, title, unit: row.querySelector('.goal-unit-input').value || "", startValue: parseFloat(row.querySelector('.goal-start-val-input').value) || 0, current: parseFloat(row.querySelector('.goal-current-val-input').value) || 0, target: parseFloat(row.querySelector('.goal-target-val-input').value) || 0, startDate: row.querySelector('.goal-start-date-input').value, endDate: row.querySelector('.goal-end-date-input').value });
             });
             lifePlan = { birthDate: birth, expectedAge: exp, goals };
             await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'settings', 'config'), lifePlan);
-            closeModal('settings'); changeDashboardTab('day'); render();
+            closeModal('settings'); render();
         };
 
         function setupRealtimeSync() { const q = query(collection(db, 'artifacts', currentAppId, 'users', user.uid, 'timers')); onSnapshot(q, (snapshot) => { data = snapshot.docs.map(doc => ({ docId: doc.id, ...doc.data() })); renderCategories(); render(); }); }
 
+        // Logic Fix: Precise Breakdown including Years, Months, Weeks, Days
         function formatRelativeTime(ms) {
-            const diff = Date.now() - ms, abs = Math.abs(diff), days = Math.floor(abs / 86400000);
-            return { text: (days >= 1 ? days + "日" : "今日"), actionLabel: (diff < 0 ? `あと ${days}日` : `${days}日経過`), isFuture: diff < 0, totalDays: days };
+            const diff = Date.now() - ms, abs = Math.abs(diff), totalDaysFloor = Math.floor(abs / 86400000), suffix = diff >= 0 ? "前" : "後";
+            let y = Math.floor(totalDaysFloor / 365.25);
+            let rem = totalDaysFloor % 365.25;
+            let m = Math.floor(rem / 30.44);
+            rem = rem % 30.44;
+            let w = Math.floor(rem / 7);
+            let d = Math.floor(rem % 7);
+
+            let breakdown = "";
+            if (y > 0) breakdown += `${y}年`;
+            if (m > 0) breakdown += `${m}ヶ月`;
+            if (w > 0) breakdown += `${w}週`;
+            if (d > 0 || breakdown === "") breakdown += `${d}日`;
+            breakdown += suffix;
+
+            const actionLabel = diff < 0 ? `あと ${totalDaysFloor}日` : `${totalDaysFloor}日経過`;
+            return { text: breakdown, actionLabel: actionLabel, isFuture: diff < 0, totalDays: totalDaysFloor };
         }
 
         window.changeDashboardTab = (id) => { dashboardTab = id; renderTabs(); renderDashboard(); };
-
         function renderTabs() {
             const container = document.getElementById('dashboardTabs');
             const standard = [{ id: 'day', label: '今日' }, { id: 'year', label: '今年' }, { id: 'life', label: '人生' }];
@@ -221,7 +215,6 @@
             const content = document.getElementById('dashboardContent'); if(!content) return;
             const now = new Date(), birth = new Date(lifePlan.birthDate);
             let percent = 0, title = "", mainVal = "", subVal = "", colorClass = "stroke-sky-500", timePercent = -1, isGoal = false;
-
             if (dashboardTab === 'day') {
                 const used = (now - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 1000;
                 percent = Math.floor(((86400 - used) / 86400) * 100); title = "残り今日"; colorClass = "stroke-sky-400";
@@ -238,19 +231,10 @@
                 const g = (lifePlan.goals || []).find(x => x.id === dashboardTab);
                 if (g) {
                     isGoal = true; const start = new Date(g.startDate), end = new Date(g.endDate);
-                    // Logic Fix: Bidirectional Progress calculation (handles increasing AND decreasing targets)
                     const range = Math.abs(g.target - g.startValue);
-                    if (range !== 0) {
-                        if (g.target > g.startValue) { // Increasing goal (e.g. Savings)
-                            percent = Math.floor(((g.current - g.startValue) / range) * 100);
-                        } else { // Decreasing goal (e.g. Weight loss)
-                            percent = Math.floor(((g.startValue - g.current) / range) * 100);
-                        }
-                    }
-                    percent = Math.min(100, Math.max(0, percent));
-                    timePercent = Math.min(100, Math.max(0, Math.floor(((now - start) / (end - start)) * 100)));
-                    title = g.title; mainVal = `達成 ${percent}%`; 
-                    subVal = `${g.startValue}${g.unit} → 現在:${g.current}${g.unit} (目標:${g.target}${g.unit})`;
+                    if (range !== 0) { if (g.target > g.startValue) { percent = Math.floor(((g.current - g.startValue) / range) * 100); } else { percent = Math.floor(((g.startValue - g.current) / range) * 100); } }
+                    percent = Math.min(100, Math.max(0, percent)); timePercent = Math.min(100, Math.max(0, Math.floor(((now - start) / (end - start)) * 100)));
+                    title = g.title; mainVal = `達成 ${percent}%`; subVal = `${g.startValue}${g.unit} → 現在:${g.current}${g.unit} (目標:${g.target}${g.unit})`;
                     colorClass = (percent >= timePercent) ? "stroke-emerald-500" : "stroke-rose-500";
                 }
             }
@@ -340,7 +324,7 @@
                 if (timer.isExpanded && timer.logs.length > 0) {
                     timeline = `<div class="px-6 pb-6 pt-2 space-y-4 relative"><div class="timeline-line"></div>${timer.logs.map((log, idx) => {
                         const r = formatRelativeTime(log.timestamp);
-                        return `<div class="relative pl-8 group"><div class="timeline-dot"></div><div class="flex justify-between items-start"><div class="flex-1" onclick="event.stopPropagation(); openModal('log', '${timer.id}', ${log.id})"><div class="flex items-center gap-2 mb-1"><span class="text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm ${r.isFuture ? 'bg-orange-600' : 'bg-indigo-800'} text-white">${r.actionLabel}</span><span class="text-[9px] text-slate-500 font-bold">${new Date(log.timestamp).toLocaleDateString()}</span></div>${log.memo ? `<p class="text-[10px] text-slate-700 mt-1 bg-white/40 p-1.5 rounded leading-relaxed">${log.memo.replace(/\n/g, '<br>')}</p>` : ''}${log.image ? `<img src="${log.image}" onclick="event.stopPropagation(); zoomImage('${log.image}')" class="mt-1 w-20 h-20 object-cover rounded shadow-sm hover:scale-105 transition cursor-zoom-in">` : ''}</div><button onclick="event.stopPropagation(); deleteLog('${timer.id}', ${log.id})" class="p-1.5 text-red-400 bg-white/80 hover:bg-red-500 hover:text-white rounded-lg transition-all ml-1 shadow-sm"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button></div></div>`;
+                        return `<div class="relative pl-8 group"><div class="timeline-dot"></div><div class="flex justify-between items-start"><div class="flex-1" onclick="event.stopPropagation(); openModal('log', '${timer.id}', ${log.id})"><div class="flex items-center gap-2 mb-1"><span class="text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm ${r.isFuture ? 'bg-orange-600' : 'bg-indigo-800'} text-white">${r.actionLabel} (${r.text})</span><span class="text-[9px] text-slate-500 font-bold">${new Date(log.timestamp).toLocaleDateString()}</span></div>${log.memo ? `<p class="text-[10px] text-slate-700 mt-1 bg-white/40 p-1.5 rounded leading-relaxed">${log.memo.replace(/\n/g, '<br>')}</p>` : ''}${log.image ? `<img src="${log.image}" onclick="event.stopPropagation(); zoomImage('${log.image}')" class="mt-1 w-20 h-20 object-cover rounded shadow-sm hover:scale-105 transition cursor-zoom-in">` : ''}</div><button onclick="event.stopPropagation(); deleteLog('${timer.id}', ${log.id})" class="p-1.5 text-red-400 bg-white/80 hover:bg-red-500 hover:text-white rounded-lg transition-all ml-1 shadow-sm"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button></div></div>`;
                     }).join('')}</div>`;
                 }
                 const bCol = rel ? (alerting ? 'bg-red-600 text-white animate-pulse' : (rel.isFuture ? 'bg-orange-600 text-white' : 'bg-indigo-800 text-white')) : '';
