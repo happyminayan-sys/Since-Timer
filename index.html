@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timeline Context Manager Cloud Pro (High-Resolution Full-Text)</title>
+    <title>Timeline Context Manager Cloud Pro (Timeline Precision v2)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
         .mono { font-family: 'JetBrains Mono', monospace; }
         .timeline-line { position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background-color: #cbd5e1; }
-        .timeline-dot { position: absolute; left: 0; top: 6px; width: 16px; height: 16px; background-color: #0ea5e9; border: 3px solid #fff; border-radius: 50%; z-index: 10; }
+        .timeline-dot { position: absolute; left: 0; top: 8px; width: 16px; height: 16px; background-color: #0ea5e9; border: 3px solid #fff; border-radius: 50%; z-index: 10; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .img-preview { max-height: 120px; object-fit: cover; border-radius: 8px; }
@@ -48,7 +48,7 @@
                     <button onclick="openModal('settings')" class="absolute top-4 right-4 text-slate-500 hover:text-white transition z-10">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     </button>
-                    <div id="dashboardTabs" class="flex gap-4 mb-4 border-b border-white/10 pb-2 mr-8 overflow-x-auto no-scrollbar text-white"></div>
+                    <div id="dashboardTabs" class="flex gap-4 mb-4 border-b border-white/10 pb-2 mr-8 overflow-x-auto no-scrollbar"></div>
                     <div id="dashboardContent" class="text-center py-2 flex flex-col items-center min-h-[170px] justify-center text-white"></div>
                 </div>
 
@@ -60,12 +60,11 @@
                     <button onclick="exportJSON()" class="p-3 bg-slate-800 text-white rounded-xl shadow-lg shadow-slate-200 hover:bg-slate-700 active:scale-95 transition-all" title="JSON物理バックアップ">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                     </button>
-                    <label class="p-3 bg-white border border-slate-200 text-slate-500 rounded-xl shadow-sm hover:bg-slate-50 active:scale-95 transition-all cursor-pointer" title="JSON完全復元">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l4 4m-4-4h12"/></svg>
+                    <label class="p-3 bg-white border border-slate-200 text-slate-500 rounded-xl shadow-sm hover:bg-slate-50 active:scale-95 transition-all cursor-pointer" title="JSON復元">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l4 4m-4-4h12"/></svg>
                         <input type="file" class="hidden" accept=".json" onchange="importJSON(event)">
                     </label>
                 </div>
-
                 <div id="categoryTabs" class="flex gap-2 overflow-x-auto no-scrollbar mb-4"></div>
             </header>
             <div id="mainContainer" class="space-y-4"></div>
@@ -76,23 +75,23 @@
     <div id="timerModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[100] backdrop-blur-sm">
         <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl text-left">
             <h3 class="text-lg font-bold mb-4 text-slate-800" id="timerModalTitle">タイマー設定</h3>
-            <div class="space-y-4 text-left">
-                <div><label class="text-[10px] font-bold text-slate-400 uppercase font-black tracking-wider text-black">カテゴリ</label><input type="text" id="newTimerCategory" list="existingCategories" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm bg-transparent"><datalist id="existingCategories"></datalist></div>
-                <div><label class="text-[10px] font-bold text-slate-400 uppercase font-black tracking-wider text-black">タイトル</label><input type="text" id="newTimerTitle" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm font-bold"></div>
+            <div class="space-y-4">
+                <div><label class="text-[10px] font-bold text-slate-400 uppercase font-black tracking-wider text-black">カテゴリ</label><input type="text" id="newTimerCategory" list="existingCategories" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm bg-transparent font-bold"><datalist id="existingCategories"></datalist></div>
+                <div><label class="text-[10px] font-bold text-slate-400 uppercase font-black tracking-wider text-black">タイトル</label><input type="text" id="newTimerTitle" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm font-bold text-slate-700"></div>
                 <div class="flex gap-4">
                     <div class="flex-1"><label class="text-[10px] font-bold text-slate-400 uppercase font-black tracking-wider text-black">背景色</label><div class="flex gap-2.5 mt-2 flex-wrap" id="colorPicker"><div class="color-dot active bg-white border-slate-400" data-color="default"></div><div class="color-dot bg-white border-slate-200 shadow-inner" data-color="white" title="白固定"></div><div class="color-dot bg-indigo-200" data-color="indigo"></div><div class="color-dot bg-orange-200" data-color="orange"></div><div class="color-dot bg-emerald-200" data-color="emerald"></div><div class="color-dot bg-rose-200" data-color="rose"></div></div></div>
-                    <div class="w-24"><label class="text-[10px] font-bold text-slate-400 uppercase font-black tracking-wider text-black text-center">アラート (日)</label><input type="number" id="newTimerAlertDays" placeholder="0" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm text-center"></div>
+                    <div class="w-24"><label class="text-[10px] font-bold text-slate-400 uppercase font-black tracking-wider text-black text-center">アラート (日)</label><input type="number" id="newTimerAlertDays" placeholder="0" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm text-center font-bold"></div>
                 </div>
                 <div id="initialDateGroup">
                     <label class="text-[10px] font-bold text-slate-400 uppercase font-black tracking-wider text-black">初回日時</label>
                     <div class="flex gap-2 items-center">
-                        <input type="datetime-local" id="newTimerInitialDate" class="flex-1 border-b-2 border-slate-100 py-2 outline-none text-sm">
-                        <button type="button" class="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold shadow-sm" onclick="document.activeElement.blur()">決定</button>
+                        <input type="datetime-local" id="newTimerInitialDate" class="flex-1 border-b-2 border-slate-100 py-2 outline-none text-sm font-medium">
+                        <button type="button" class="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold" onclick="document.activeElement.blur()">決定</button>
                     </div>
                     <label class="text-[10px] font-bold text-slate-400 uppercase mt-2 block font-black tracking-wider text-black">メモ</label>
                     <textarea id="newTimerInitialMemo" class="w-full border rounded-lg p-2 mt-1 text-sm h-16 resize-none border-slate-200 outline-none"></textarea>
                 </div>
-                <div class="flex gap-2 pt-2"><button onclick="closeModal('timer')" class="flex-1 py-3 text-slate-500 font-bold">中止</button><button id="timerSubmitBtn" class="flex-1 py-3 bg-slate-800 text-white rounded-xl font-bold shadow-lg">保存</button></div>
+                <div class="flex gap-2 pt-2"><button onclick="closeModal('timer')" class="flex-1 py-3 text-slate-500 font-bold">中止</button><button id="timerSubmitBtn" class="flex-1 py-3 bg-slate-800 text-white rounded-xl font-bold shadow-lg active:scale-95 transition">保存</button></div>
             </div>
         </div>
     </div>
@@ -100,19 +99,19 @@
     <div id="settingsModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[100] backdrop-blur-sm">
         <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl text-left overflow-y-auto max-h-[90vh] no-scrollbar">
             <h3 class="text-lg font-bold mb-4 text-slate-800 tracking-tight">目標・ライフプラン設定</h3>
-            <div class="space-y-6">
+            <div class="space-y-6 text-left">
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="text-[10px] font-bold text-slate-400 uppercase font-black tracking-wider text-black">生年月日</label>
                         <div class="flex gap-2 items-center">
-                            <input type="date" id="settingsBirthDate" class="flex-1 border-b-2 border-slate-100 py-2 outline-none text-sm">
+                            <input type="date" id="settingsBirthDate" class="flex-1 border-b-2 border-slate-100 py-2 outline-none text-sm font-bold">
                             <button type="button" class="px-2 py-1 bg-slate-100 text-slate-600 rounded text-[10px] font-bold shadow-sm" onclick="document.activeElement.blur()">決定</button>
                         </div>
                     </div>
-                    <div><label class="text-[10px] font-bold text-slate-400 uppercase font-black tracking-wider text-black">寿命目安</label><input type="number" id="settingsExpectedAge" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm"></div>
+                    <div><label class="text-[10px] font-bold text-slate-400 uppercase font-black tracking-wider text-black">寿命目安</label><input type="number" id="settingsExpectedAge" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm font-bold"></div>
                 </div>
                 <div class="pt-4 border-t border-slate-100">
-                    <label class="text-[10px] font-black text-slate-500 uppercase flex justify-between items-center mb-2"><span>自由目標設定 (複数可)</span><button onclick="addNewGoalRow()" class="text-sky-500 hover:text-sky-600 text-[10px] font-bold">+ 追加</button></label>
+                    <label class="text-[10px] font-black text-slate-500 uppercase flex justify-between items-center mb-2"><span>自由目標設定 (複数可)</span><button onclick="addNewGoalRow()" class="text-sky-500 hover:text-sky-600 text-[10px] font-bold">+ 目標を追加</button></label>
                     <div id="goalRowsContainer" class="space-y-4"></div>
                 </div>
                 <div class="flex gap-2 pt-4"><button onclick="closeModal('settings')" class="flex-1 py-3 text-slate-500 font-bold">閉じる</button><button onclick="saveProfileSettings()" class="flex-1 py-3 bg-amber-500 text-white rounded-xl font-bold shadow-lg">設定を反映</button></div>
@@ -127,7 +126,7 @@
                 <div>
                     <label class="text-[10px] font-bold text-slate-400 uppercase font-black tracking-wider text-black">日時</label>
                     <div class="flex gap-2 items-center">
-                        <input type="datetime-local" id="newLogDate" class="flex-1 border-b-2 border-slate-100 py-2 outline-none text-sm">
+                        <input type="datetime-local" id="newLogDate" class="flex-1 border-b-2 border-slate-100 py-2 outline-none text-sm font-bold">
                         <button type="button" class="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold shadow-sm" onclick="document.activeElement.blur()">決定</button>
                     </div>
                 </div>
@@ -136,7 +135,7 @@
                     <label class="flex flex-col items-center justify-center gap-1 py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 cursor-pointer hover:bg-slate-50 active:scale-95 transition"><svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span class="text-[10px] font-bold uppercase">選択</span><input type="file" class="hidden" accept="image/*" onchange="handlePhotoSelect(event)"></label>
                 </div>
                 <div id="photoPreviewContainer" class="hidden relative"><img id="photoPreview" class="w-full h-32 object-cover rounded-lg border shadow-inner"><button onclick="removeSelectedPhoto()" class="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button></div>
-                <textarea id="newLogMemo" class="w-full border rounded-lg p-2 text-sm h-24 resize-none border-slate-200 outline-none" placeholder="記録内容を入力..."></textarea>
+                <textarea id="newLogMemo" class="w-full border rounded-lg p-2 text-sm h-24 resize-none border-slate-200 outline-none font-medium" placeholder="記録内容を入力..."></textarea>
                 <div class="flex gap-2 pt-2"><button onclick="closeModal('log')" class="flex-1 py-3 text-slate-500 font-bold">中止</button><button id="logSubmitBtn" onclick="addLog()" class="flex-1 py-3 bg-sky-50 text-sky-600 font-bold rounded-xl border border-sky-100 shadow-sm active:scale-95 transition">記録を確定</button></div>
             </div>
         </div>
@@ -176,7 +175,7 @@
         window.addNewGoalRow = () => {
             const container = document.getElementById('goalRowsContainer'); const id = 'g' + Date.now();
             const div = document.createElement('div'); div.className = "p-3 bg-slate-100 rounded-xl space-y-2 relative goal-row shadow-sm"; div.dataset.id = id;
-            div.innerHTML = `<button onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-slate-400 hover:text-red-500 text-sm font-bold">×</button><div class="flex gap-2"><input type="text" placeholder="目標名" class="flex-1 border-b border-white py-1 outline-none text-xs bg-transparent font-bold goal-title-input"><input type="text" placeholder="単位" class="w-12 border-b border-white py-1 outline-none text-xs bg-transparent goal-unit-input"></div><div class="grid grid-cols-3 gap-2"><div><label class="text-[8px] text-slate-400 uppercase font-bold text-black">開始</label><input type="number" step="any" class="bg-transparent border-b border-white w-full text-[10px] outline-none goal-start-val-input font-bold"></div><div><label class="text-[8px] text-slate-400 uppercase font-bold text-black">現在</label><input type="number" step="any" class="bg-transparent border-b border-white w-full text-[10px] outline-none goal-current-val-input font-bold"></div><div><label class="text-[8px] text-slate-400 uppercase font-bold text-sky-600">目標</label><input type="number" step="any" class="bg-transparent border-b border-white w-full text-[10px] outline-none goal-target-val-input font-bold"></div></div><div class="grid grid-cols-2 gap-2 mt-1"><div><label class="text-[8px] text-slate-400 font-bold text-black">開始日</label><div class="flex items-center gap-1"><input type="date" class="bg-transparent text-[10px] outline-none goal-start-date-input flex-1"><button type="button" class="px-1 bg-white rounded text-[8px] shadow-sm" onclick="document.activeElement.blur()">定</button></div></div><div><label class="text-[8px] text-slate-400 font-bold text-black">期日</label><div class="flex items-center gap-1"><input type="date" class="bg-transparent text-[10px] outline-none goal-end-date-input flex-1"><button type="button" class="px-1 bg-white rounded text-[8px] shadow-sm" onclick="document.activeElement.blur()">定</button></div></div></div>`;
+            div.innerHTML = `<button onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-slate-400 hover:text-red-500 text-sm font-bold">×</button><div class="flex gap-2"><input type="text" placeholder="目標名" class="flex-1 border-b border-white py-1 outline-none text-xs bg-transparent font-bold goal-title-input"><input type="text" placeholder="単位" class="w-12 border-b border-white py-1 outline-none text-xs bg-transparent goal-unit-input"></div><div class="grid grid-cols-3 gap-2"><div><label class="text-[8px] text-slate-400 uppercase font-black text-black">開始</label><input type="number" step="any" class="bg-transparent border-b border-white w-full text-[10px] outline-none goal-start-val-input font-bold"></div><div><label class="text-[8px] text-slate-400 uppercase font-black text-black">現在</label><input type="number" step="any" class="bg-transparent border-b border-white w-full text-[10px] outline-none goal-current-val-input font-bold"></div><div><label class="text-[8px] text-slate-400 uppercase font-black text-sky-600">目標</label><input type="number" step="any" class="bg-transparent border-b border-white w-full text-[10px] outline-none goal-target-val-input font-bold"></div></div><div class="grid grid-cols-2 gap-2 mt-1"><div><label class="text-[8px] text-slate-400 font-bold text-black">開始日</label><div class="flex items-center gap-1"><input type="date" class="bg-transparent text-[10px] outline-none goal-start-date-input flex-1"><button type="button" class="px-1 bg-white rounded text-[8px] shadow-sm" onclick="document.activeElement.blur()">定</button></div></div><div><label class="text-[8px] text-slate-400 font-bold text-black">期日</label><div class="flex items-center gap-1"><input type="date" class="bg-transparent text-[10px] outline-none goal-end-date-input flex-1"><button type="button" class="px-1 bg-white rounded text-[8px] shadow-sm" onclick="document.activeElement.blur()">定</button></div></div></div>`;
             container.appendChild(div);
         };
 
@@ -250,7 +249,7 @@
                 }
             }
             const r = 45, circ = 2 * Math.PI * r, offset = circ - (percent / 100) * circ, timeOffset = timePercent >= 0 ? circ - (timePercent / 100) * circ : 0;
-            content.innerHTML = `<div class="relative inline-block"><svg width="110" height="110" class="circle-progress"><circle cx="55" cy="55" r="${r}" stroke="#1e293b" stroke-width="12" fill="transparent" />${timePercent >= 0 ? `<circle cx="55" cy="55" r="${r}" stroke="#334155" stroke-width="4" stroke-dasharray="${circ}" stroke-dashoffset="${timeOffset}" fill="transparent" />` : ''}<circle cx="55" cy="55" r="${r}" class="progress-indicator ${colorClass}" stroke-width="12" stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round" fill="transparent" /></svg><div class="absolute inset-0 flex flex-col items-center justify-center text-white"><span class="text-2xl font-black">${percent}<span class="text-xs">%</span></span><span class="text-[8px] text-slate-400 uppercase font-bold tracking-widest">${isGoal ? '達成' : '残り'}</span></div></div><div class="mt-4"><p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none mb-1">${title}</p><h2 class="text-2xl font-black text-white tracking-tighter">${mainVal}</h2><p class="text-[9px] font-bold text-slate-500 mt-1">${subVal}</p></div>`;
+            content.innerHTML = `<div class="relative inline-block"><svg width="110" height="110" class="circle-progress"><circle cx="55" cy="55" r="${r}" stroke="#1e293b" stroke-width="12" fill="transparent" />${timePercent >= 0 ? `<circle cx="55" cy="55" r="${r}" stroke="#334155" stroke-width="4" stroke-dasharray="${circ}" stroke-dashoffset="${timeOffset}" fill="transparent" />` : ''}<circle cx="55" cy="55" r="${r}" class="progress-indicator ${colorClass}" stroke-width="12" stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round" fill="transparent" /></svg><div class="absolute inset-0 flex flex-col items-center justify-center text-white"><span class="text-2xl font-black">${percent}<span class="text-xs">%</span></span><span class="text-[8px] text-slate-400 uppercase font-bold tracking-widest">${isGoal ? '達成' : '残り'}</span></div></div><div class="mt-4"><p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none mb-1 text-center">${title}</p><h2 class="text-2xl font-black text-white tracking-tighter text-center">${mainVal}</h2><p class="text-[9px] font-bold text-slate-500 mt-1 text-center">${subVal}</p></div>`;
         }
 
         window.handlePhotoSelect = (e) => {
@@ -281,7 +280,7 @@
                 else { document.getElementById('timerModalTitle').innerText = "新規作成"; document.getElementById('newTimerTitle').value = ""; document.getElementById('newTimerCategory').value = ""; document.getElementById('newTimerAlertDays').value = ""; document.getElementById('newTimerInitialDate').value = ds; document.getElementById('initialDateGroup').style.display = "block"; currentSelectedColor = 'default'; document.querySelector(`[data-color="default"]`).classList.add('active'); document.getElementById('timerSubmitBtn').onclick = createTimer; }
             }
             if (type === 'log') { removeSelectedPhoto(); if (logId) { const t = data.find(t => t.id === id.toString()), l = t.logs.find(l => l.id === logId); document.getElementById('newLogDate').value = new Date(l.timestamp - offset).toISOString().slice(0, 16); document.getElementById('newLogMemo').value = l.memo || ""; if (l.image) { currentSelectedPhotoBase64 = l.image; document.getElementById('photoPreview').src = l.image; document.getElementById('photoPreviewContainer').classList.remove('hidden'); } document.getElementById('logSubmitBtn').onclick = updateLog; } else { document.getElementById('newLogDate').value = ds; document.getElementById('newLogMemo').value = ""; document.getElementById('logSubmitBtn').onclick = addLog; } }
-            if (type === 'settings') { document.getElementById('settingsBirthDate').value = lifePlan.birthDate; document.getElementById('settingsExpectedAge').value = lifePlan.expectedAge; const container = document.getElementById('goalRowsContainer'); container.innerHTML = ''; (lifePlan.goals || []).forEach(g => { const div = document.createElement('div'); div.className = "p-3 bg-slate-100 rounded-xl space-y-2 relative goal-row shadow-sm"; div.dataset.id = g.id; div.innerHTML = `<button onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-slate-400 hover:text-red-500 text-sm font-bold">×</button><div class="flex gap-2"><input type="text" value="${g.title}" class="flex-1 border-b border-white py-1 outline-none text-xs bg-transparent font-bold goal-title-input"><input type="text" value="${g.unit}" class="w-12 border-b border-white py-1 outline-none text-xs bg-transparent goal-unit-input"></div><div class="grid grid-cols-3 gap-2"><div><label class="text-[8px] text-slate-400 uppercase font-black text-black">開始</label><input type="number" step="any" value="${g.startValue}" class="bg-transparent border-b border-white w-full text-[10px] outline-none goal-start-val-input"></div><div><label class="text-[8px] text-slate-400 uppercase font-black text-black">現在</label><input type="number" step="any" value="${g.current}" class="bg-transparent border-b border-white w-full text-[10px] outline-none goal-current-val-input"></div><div><label class="text-[8px] text-slate-400 uppercase font-black text-black">目標</label><input type="number" step="any" value="${g.target}" class="bg-transparent border-b border-white w-full text-[10px] outline-none goal-target-val-input"></div></div><div class="grid grid-cols-2 gap-2 mt-1"><div class="flex flex-col"><label class="text-[8px] text-slate-400 font-bold text-black">開始日</label><div class="flex items-center gap-1"><input type="date" value="${g.startDate}" class="bg-transparent text-[10px] outline-none goal-start-date-input flex-1"><button type="button" class="px-1 bg-white rounded text-[8px] shadow-sm" onclick="document.activeElement.blur()">定</button></div></div><div class="flex flex-col"><label class="text-[8px] text-slate-400 font-bold text-black">期日</label><div class="flex items-center gap-1"><input type="date" value="${g.endDate}" class="bg-transparent text-[10px] outline-none goal-end-date-input flex-1"><button type="button" class="px-1 bg-white rounded text-[8px] shadow-sm" onclick="document.activeElement.blur()">定</button></div></div></div>`; container.appendChild(div); }); }
+            if (type === 'settings') { document.getElementById('settingsBirthDate').value = lifePlan.birthDate; document.getElementById('settingsExpectedAge').value = lifePlan.expectedAge; const container = document.getElementById('goalRowsContainer'); container.innerHTML = ''; (lifePlan.goals || []).forEach(g => { const div = document.createElement('div'); div.className = "p-3 bg-slate-100 rounded-xl space-y-2 relative goal-row shadow-sm"; div.dataset.id = g.id; div.innerHTML = `<button onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-slate-400 hover:text-red-500 text-sm font-bold">×</button><div class="flex gap-2"><input type="text" value="${g.title}" class="flex-1 border-b border-white py-1 outline-none text-xs bg-transparent font-bold goal-title-input"><input type="text" value="${g.unit}" class="w-12 border-b border-white py-1 outline-none text-xs bg-transparent goal-unit-input"></div><div class="grid grid-cols-3 gap-2"><div><label class="text-[8px] text-slate-400 uppercase font-black text-black">開始</label><input type="number" step="any" value="${g.startValue}" class="bg-transparent border-b border-white w-full text-[10px] outline-none goal-start-val-input"></div><div><label class="text-[8px] text-slate-400 uppercase font-black text-black">現在</label><input type="number" step="any" value="${g.current}" class="bg-transparent border-b border-white w-full text-[10px] outline-none goal-current-val-input"></div><div><label class="text-[8px] text-slate-400 uppercase font-black text-black">目標</label><input type="number" step="any" value="${g.target}" class="bg-transparent border-b border-white w-full text-[10px] outline-none goal-target-val-input"></div></div><div class="grid grid-cols-2 gap-2 mt-1"><div class="flex items-center gap-1"><input type="date" value="${g.startDate}" class="bg-transparent text-[10px] outline-none goal-start-date-input flex-1"><button type="button" class="px-1 bg-white rounded text-[8px] shadow-sm" onclick="document.activeElement.blur()">定</button></div><div class="flex items-center gap-1"><input type="date" value="${g.endDate}" class="bg-transparent text-[10px] outline-none goal-end-date-input flex-1"><button type="button" class="px-1 bg-white rounded text-[8px] shadow-sm" onclick="document.activeElement.blur()">定</button></div></div>`; container.appendChild(div); }); }
         };
         window.closeModal = (type) => { document.getElementById(`${type}Modal`).style.display = 'none'; };
         window.createTimer = async () => { const title = document.getElementById('newTimerTitle').value.trim(); if (!title) return; const nid = Date.now().toString(), nt = { id: nid, title, category: document.getElementById('newTimerCategory').value.trim() || '未分類', color: currentSelectedColor, alertDays: parseInt(document.getElementById('newTimerAlertDays').value) || 0, isExpanded: false, logs: [{ id: Date.now()+1, timestamp: new Date(document.getElementById('newTimerInitialDate').value).getTime(), memo: document.getElementById('newTimerInitialMemo').value.trim() }] }; await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', nid), nt); closeModal('timer'); };
@@ -311,13 +310,14 @@
                 const card = document.createElement('div'); card.className = `rounded-2xl shadow-md border overflow-hidden transition-all ${col} ${alerting ? 'ring-2 ring-red-500' : ''}`;
                 let timeline = '';
                 if (timer.isExpanded && timer.logs.length > 0) {
-                    timeline = `<div class="px-6 pb-6 pt-2 space-y-3 relative"><div class="timeline-line"></div>${timer.logs.map((log, idx) => {
+                    timeline = `<div class="px-6 pb-6 pt-2 space-y-2 relative"><div class="timeline-line"></div>${timer.logs.map((log, idx) => {
                         const r = formatRelativeTime(log.timestamp);
-                        const interval = idx < timer.logs.length - 1 ? formatBreakdown(log.timestamp - timer.logs[idx+1].timestamp) : null;
+                        const intervalMs = idx < timer.logs.length - 1 ? log.timestamp - timer.logs[idx+1].timestamp : null;
+                        const intervalStr = intervalMs !== null ? formatBreakdown(intervalMs) : null;
                         return `
                             <div class="relative pl-8 group">
                                 <div class="timeline-dot"></div>
-                                <div class="flex justify-between items-start">
+                                <div class="flex justify-between items-start pt-1 pb-1">
                                     <div class="flex-1" onclick="event.stopPropagation(); openModal('log', '${timer.id}', ${log.id})">
                                         <div class="flex items-center gap-2 mb-0.5">
                                             <span class="text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm ${r.isFuture ? 'bg-orange-600' : 'bg-indigo-800'} text-white">${r.text}</span>
@@ -328,17 +328,16 @@
                                     </div>
                                     <button onclick="event.stopPropagation(); deleteLog('${timer.id}', ${log.id})" class="p-1.5 text-red-400 bg-white/80 hover:bg-red-500 hover:text-white rounded-lg transition shadow-sm ml-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
                                 </div>
-                                ${interval ? `
-                                    <div class="absolute left-[-2px] bottom-[-20px] z-20">
-                                        <div class="bg-white/90 border border-slate-200 px-1.5 py-0.5 rounded-full shadow-sm">
-                                            <span class="text-[8px] font-black text-sky-600 whitespace-nowrap">間隔: ${interval}</span>
+                                ${intervalStr ? `
+                                    <div class="flex items-center mt-1 mb-1">
+                                        <div class="bg-white/95 border border-slate-200 px-1.5 py-0.5 rounded-full shadow-sm ml-[-4px] z-20">
+                                            <span class="text-[8px] font-black text-sky-600 whitespace-nowrap">間隔: ${intervalStr}</span>
                                         </div>
                                     </div>` : ''}
                             </div>`;
                     }).join('')}</div>`;
                 }
                 const bCol = rel ? (alerting ? 'bg-red-600 text-white animate-pulse' : (rel.isFuture ? 'bg-orange-600 text-white' : 'bg-indigo-800 text-white')) : '';
-                // Logic Fix: Responsive Title Layout (Full text with wrapping)
                 card.innerHTML = `<div class="py-2.5 px-4 flex items-center justify-between cursor-pointer hover:bg-white/10" onclick="toggleExpand('${timer.id}')"><div class="flex-1 min-w-0 mr-3"><div class="flex items-center gap-1.5 mb-1"><span class="text-[8px] font-black uppercase px-1.5 py-0.5 bg-white/80 text-slate-500 rounded border border-slate-300 shadow-sm">${timer.category}</span>${rel ? `<span class="text-[9px] font-black px-1.5 py-0.5 rounded shadow-md ${bCol} mono">${rel.actionLabel}</span>` : ''}</div><h2 class="text-base font-bold text-slate-800 leading-tight break-words tracking-tight">${timer.title} <span class="text-xs font-normal text-slate-400 ml-1">(${timer.logs.length}件)</span></h2></div><div class="flex items-center gap-2 shrink-0" onclick="event.stopPropagation()"><button onclick="openModal('timer', '${timer.id}')" class="p-1.5 text-slate-500 bg-white/60 hover:text-sky-700 rounded-lg shadow-sm border border-white/80"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button><button onclick="deleteTimer('${timer.id}')" class="p-1.5 text-red-500 bg-white/60 hover:bg-red-600 hover:text-white rounded-lg shadow-sm border border-red-100 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button><button onclick="openModal('log', '${timer.id}')" class="w-10 h-10 bg-white text-sky-600 rounded-full flex items-center justify-center hover:bg-sky-500 hover:text-white transition shadow-lg border border-sky-100"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M12 4v16m8-8H4"/></svg></button></div></div>${timeline}`;
                 container.appendChild(card);
             });
