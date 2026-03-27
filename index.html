@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timeline Context Manager Cloud Pro (Integrated Precision v2)</title>
+    <title>Timeline Context Manager Cloud Pro (JSON Focused)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap');
@@ -48,7 +48,7 @@
                     <button onclick="openModal('settings')" class="absolute top-4 right-4 text-slate-500 hover:text-white transition z-10">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     </button>
-                    <div id="dashboardTabs" class="flex gap-4 mb-4 border-b border-white/10 pb-2 mr-8 overflow-x-auto no-scrollbar"></div>
+                    <div id="dashboardTabs" class="flex gap-4 mb-4 border-b border-white/10 pb-2 mr-8 overflow-x-auto no-scrollbar text-white"></div>
                     <div id="dashboardContent" class="text-center py-2 flex flex-col items-center min-h-[170px] justify-center text-white"></div>
                 </div>
 
@@ -57,10 +57,13 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                         新規作成
                     </button>
-                    <button onclick="exportCSV()" class="p-3 bg-slate-800 text-white rounded-xl shadow-lg shadow-slate-200 hover:bg-slate-700 active:scale-95 transition-all" title="CSV出力"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></button>
-                    <label class="p-3 bg-white border border-slate-200 text-slate-500 rounded-xl shadow-sm hover:bg-slate-50 active:scale-95 transition-all cursor-pointer" title="CSV読込"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg><input type="file" class="hidden" accept=".csv" onchange="importSpreadsheetCSV(event)"></label>
-                    <button onclick="exportJSON()" class="p-3 bg-white border border-slate-200 text-slate-500 rounded-xl shadow-sm hover:bg-slate-50 active:scale-95 transition-all"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg></button>
-                    <label class="p-3 bg-white border border-slate-200 text-slate-500 rounded-xl shadow-sm hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l4 4m-4-4h12"/></svg><input type="file" class="hidden" accept=".json" onchange="importJSON(event)"></label>
+                    <button onclick="exportJSON()" class="p-3 bg-slate-800 text-white rounded-xl shadow-lg shadow-slate-200 hover:bg-slate-700 active:scale-95 transition-all" title="JSON物理バックアップ">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    </button>
+                    <label class="p-3 bg-white border border-slate-200 text-slate-500 rounded-xl shadow-sm hover:bg-slate-50 active:scale-95 transition-all cursor-pointer" title="JSON完全復元">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l4 4m-4-4h12"/></svg>
+                        <input type="file" class="hidden" accept=".json" onchange="importJSON(event)">
+                    </label>
                 </div>
 
                 <div id="categoryTabs" class="flex gap-2 overflow-x-auto no-scrollbar mb-4"></div>
@@ -73,11 +76,11 @@
     <div id="timerModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[100] backdrop-blur-sm">
         <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl text-left">
             <h3 class="text-lg font-bold mb-4 text-slate-800" id="timerModalTitle">タイマー設定</h3>
-            <div class="space-y-4">
-                <div><label class="text-[10px] font-bold text-slate-400 uppercase">カテゴリ</label><input type="text" id="newTimerCategory" list="existingCategories" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm bg-transparent font-medium"><datalist id="existingCategories"></datalist></div>
+            <div class="space-y-4 text-left">
+                <div><label class="text-[10px] font-bold text-slate-400 uppercase">カテゴリ</label><input type="text" id="newTimerCategory" list="existingCategories" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm bg-transparent"><datalist id="existingCategories"></datalist></div>
                 <div><label class="text-[10px] font-bold text-slate-400 uppercase">タイトル</label><input type="text" id="newTimerTitle" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm font-bold"></div>
                 <div class="flex gap-4">
-                    <div class="flex-1"><label class="text-[10px] font-bold text-slate-400 uppercase">背景色</label><div class="flex gap-2.5 mt-2 flex-wrap" id="colorPicker"><div class="color-dot active bg-white border-slate-400" data-color="default"></div><div class="color-dot bg-white border-slate-200 shadow-inner" data-color="white" title="白固定"></div><div class="color-dot bg-indigo-200" data-color="indigo"></div><div class="color-dot bg-orange-200" data-color="orange"></div><div class="color-dot bg-emerald-200" data-color="emerald"></div><div class="color-dot bg-rose-200" data-color="rose"></div></div></div>
+                    <div class="flex-1"><label class="text-[10px] font-bold text-slate-400 uppercase">背景色</label><div class="flex gap-2.5 mt-2 flex-wrap" id="colorPicker"><div class="color-dot active bg-white border-slate-400" data-color="default"></div><div class="color-dot bg-white border-slate-200 shadow-inner" data-color="white"></div><div class="color-dot bg-indigo-200" data-color="indigo"></div><div class="color-dot bg-orange-200" data-color="orange"></div><div class="color-dot bg-emerald-200" data-color="emerald"></div><div class="color-dot bg-rose-200" data-color="rose"></div></div></div>
                     <div class="w-24"><label class="text-[10px] font-bold text-slate-400 uppercase">アラート (日)</label><input type="number" id="newTimerAlertDays" placeholder="0" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm text-center"></div>
                 </div>
                 <div id="initialDateGroup">
@@ -112,7 +115,7 @@
                     <label class="text-[10px] font-black text-slate-500 uppercase flex justify-between items-center mb-2"><span>自由目標設定 (複数可)</span><button onclick="addNewGoalRow()" class="text-sky-500 hover:text-sky-600 text-[10px] font-bold">+ 追加</button></label>
                     <div id="goalRowsContainer" class="space-y-4"></div>
                 </div>
-                <div class="flex gap-2 pt-4"><button onclick="closeModal('settings')" class="flex-1 py-3 text-slate-500 font-bold">閉じる</button><button onclick="saveProfileSettings()" class="flex-1 py-3 bg-amber-500 text-white rounded-xl font-bold">設定を反映</button></div>
+                <div class="flex gap-2 pt-4"><button onclick="closeModal('settings')" class="flex-1 py-3 text-slate-500 font-bold">閉じる</button><button onclick="saveProfileSettings()" class="flex-1 py-3 bg-amber-500 text-white rounded-xl font-bold shadow-lg">設定を反映</button></div>
             </div>
         </div>
     </div>
@@ -190,6 +193,7 @@
 
         function setupRealtimeSync() { const q = query(collection(db, 'artifacts', currentAppId, 'users', user.uid, 'timers')); onSnapshot(q, (snapshot) => { data = snapshot.docs.map(doc => ({ docId: doc.id, ...doc.data() })); renderCategories(); render(); }); }
 
+        // Logic: Precise Breakdown (Year, Month, Week, Day) with Absolute Immortality
         function formatRelativeTime(ms) {
             const diff = Date.now() - ms, abs = Math.abs(diff), totalDays = Math.floor(abs / 86400000), suffix = diff >= 0 ? "前" : "後";
             let y = Math.floor(totalDays / 365.25), rem = totalDays % 365.25, m = Math.floor(rem / 30.44);
@@ -247,29 +251,6 @@
             content.innerHTML = `<div class="relative inline-block"><svg width="110" height="110" class="circle-progress"><circle cx="55" cy="55" r="${r}" stroke="#1e293b" stroke-width="12" fill="transparent" />${timePercent >= 0 ? `<circle cx="55" cy="55" r="${r}" stroke="#334155" stroke-width="4" stroke-dasharray="${circ}" stroke-dashoffset="${timeOffset}" fill="transparent" />` : ''}<circle cx="55" cy="55" r="${r}" class="progress-indicator ${colorClass}" stroke-width="12" stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round" fill="transparent" /></svg><div class="absolute inset-0 flex flex-col items-center justify-center text-white"><span class="text-2xl font-black">${percent}<span class="text-xs">%</span></span><span class="text-[8px] text-slate-400 uppercase font-bold tracking-widest">${isGoal ? '達成' : '残り'}</span></div></div><div class="mt-4"><p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none mb-1">${title}</p><h2 class="text-2xl font-black text-white tracking-tighter">${mainVal}</h2><p class="text-[9px] font-bold text-slate-500 mt-1">${subVal}</p></div>`;
         }
 
-        function normalizeDateStr(ds) { if (!ds) return ""; return ds.trim().replace(/\s*:\s*/g, ':').replace(/\s+/g, 'T').replace(/\//g, '-'); }
-
-        function robustCSVParse(text) {
-            const rows = []; let row = []; let cell = ''; let inQuotes = false;
-            for (let i = 0; i < text.length; i++) {
-                const char = text[i]; const nextChar = text[i+1];
-                if (inQuotes) { if (char === '"' && nextChar === '"') { cell += '"'; i++; } else if (char === '"') { inQuotes = false; } else { cell += char; } }
-                else { if (char === '"') { inQuotes = true; } else if (char === ',') { row.push(cell.trim()); cell = ''; } else if (char === '\n' || (char === '\r' && nextChar === '\n')) { row.push(cell.trim()); rows.push(row); row = []; cell = ''; if (char === '\r') i++; } else { cell += char; } }
-            }
-            if (row.length > 0 || cell !== '') { row.push(cell.trim()); rows.push(row); }
-            return rows;
-        }
-
-        window.importSpreadsheetCSV = async (e) => {
-            const f = e.target.files[0]; if (!f) return;
-            const reader = new FileReader(); reader.onload = async (ev) => {
-                const buffer = ev.target.result; let text = new TextDecoder("utf-8").decode(buffer); if (text.includes('\uFFFD')) text = new TextDecoder("shift-jis").decode(buffer);
-                const lines = robustCSVParse(text); let localDataRef = [...data], processedCount = 0;
-                for (const cols of lines) { try { if (cols.length < 3) continue; const cat = cols[0] || "未分類", title = cols[1], dsRaw = normalizeDateStr(cols[2]), memo = cols[3] || ""; const ts = new Date(dsRaw).getTime(); if (!title || isNaN(ts)) continue; let timer = localDataRef.find(t => t.title === title && t.category === cat); if (timer) { if (!timer.logs.some(l => Math.abs(l.timestamp - ts) < 2000)) { timer.logs.push({ id: Date.now() + Math.random(), timestamp: ts, memo: memo }); timer.logs.sort((a,b) => b.timestamp - a.timestamp); await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', timer.id), { logs: timer.logs }); processedCount++; } } else { const nid = (Date.now() + Math.random()).toString(), nt = { id: nid, title, category: cat, color: 'default', alertDays: 0, isExpanded: false, logs: [{ id: Date.now() + Math.random(), timestamp: ts, memo: memo }] }; localDataRef.push(nt); await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', nid), nt); processedCount++; } } catch (err) {} }
-                alert(`${processedCount}件のデータを統合完了。`);
-            }; reader.readAsArrayBuffer(f);
-        };
-
         window.handlePhotoSelect = (e) => {
             const file = e.target.files[0]; if (!file) return;
             const reader = new FileReader(); reader.onload = (ev) => {
@@ -284,11 +265,10 @@
         document.querySelectorAll('.color-dot').forEach(dot => { dot.onclick = () => { document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active')); dot.classList.add('active'); currentSelectedColor = dot.dataset.color; }; });
 
         window.importJSON = async (e) => {
-            const f = e.target.files[0]; if (!f || !confirm("復元しますか？")) return;
+            const f = e.target.files[0]; if (!f || !confirm("データを復元しますか？")) return;
             const reader = new FileReader(); reader.onload = async (ev) => { try { const imported = JSON.parse(ev.target.result); if (Array.isArray(imported)) { for (const t of imported) { const docId = (t.id || Date.now() + Math.random()).toString(); await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', docId), t); } alert('復元完了。'); } } catch (err) { alert('失敗'); } }; reader.readAsText(f);
         };
-        window.exportJSON = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })); a.download = `timer_backup.json`; a.click(); };
-        window.exportCSV = () => { const header = ["Category", "Title", "LogDate", "LogMemo"], rows = []; data.forEach(t => t.logs.forEach(l => { rows.push([t.category, t.title, new Date(l.timestamp).toLocaleString('ja-JP').replace(/\//g, '-'), l.memo]); })); const csv = "\uFEFF" + [header.join(","), ...rows.map(r => r.map(v => `"${(v||"").toString().replace(/"/g,'""')}"`).join(","))].join("\n"); const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `timer_export.csv`; a.click(); };
+        window.exportJSON = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })); a.download = `timer_full_backup.json`; a.click(); };
 
         window.openModal = (type, id = null, logId = null) => {
             document.getElementById(`${type}Modal`).style.display = 'flex'; currentEditingTimerId = id; currentEditingLogId = logId;
@@ -299,7 +279,7 @@
                 else { document.getElementById('timerModalTitle').innerText = "新規作成"; document.getElementById('newTimerTitle').value = ""; document.getElementById('newTimerCategory').value = ""; document.getElementById('newTimerAlertDays').value = ""; document.getElementById('newTimerInitialDate').value = ds; document.getElementById('initialDateGroup').style.display = "block"; currentSelectedColor = 'default'; document.querySelector(`[data-color="default"]`).classList.add('active'); document.getElementById('timerSubmitBtn').onclick = createTimer; }
             }
             if (type === 'log') { removeSelectedPhoto(); if (logId) { const t = data.find(t => t.id === id.toString()), l = t.logs.find(l => l.id === logId); document.getElementById('newLogDate').value = new Date(l.timestamp - offset).toISOString().slice(0, 16); document.getElementById('newLogMemo').value = l.memo || ""; if (l.image) { currentSelectedPhotoBase64 = l.image; document.getElementById('photoPreview').src = l.image; document.getElementById('photoPreviewContainer').classList.remove('hidden'); } document.getElementById('logSubmitBtn').onclick = updateLog; } else { document.getElementById('newLogDate').value = ds; document.getElementById('newLogMemo').value = ""; document.getElementById('logSubmitBtn').onclick = addLog; } }
-            if (type === 'settings') { document.getElementById('settingsBirthDate').value = lifePlan.birthDate; document.getElementById('settingsExpectedAge').value = lifePlan.expectedAge; const container = document.getElementById('goalRowsContainer'); container.innerHTML = ''; (lifePlan.goals || []).forEach(g => { const div = document.createElement('div'); div.className = "p-3 bg-slate-100 rounded-xl space-y-2 relative goal-row shadow-sm"; div.dataset.id = g.id; div.innerHTML = `<button onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-slate-400 hover:text-red-500 text-sm font-bold">×</button><div class="flex gap-2"><input type="text" value="${g.title}" class="flex-1 border-b border-white py-1 outline-none text-xs bg-transparent font-bold goal-title-input"><input type="text" value="${g.unit}" class="w-12 border-b border-white py-1 outline-none text-xs bg-transparent goal-unit-input"></div><div class="grid grid-cols-3 gap-2"><div><label class="text-[8px] text-slate-400 uppercase">開始</label><input type="number" step="any" value="${g.startValue}" class="bg-transparent border-b border-white w-full text-[10px] outline-none goal-start-val-input"></div><div><label class="text-[8px] text-slate-400 uppercase">現在</label><input type="number" step="any" value="${g.current}" class="bg-transparent border-b border-white w-full text-[10px] outline-none goal-current-val-input"></div><div><label class="text-[8px] text-slate-400 uppercase">目標</label><input type="number" step="any" value="${g.target}" class="bg-transparent border-b border-white w-full text-[10px] outline-none goal-target-val-input"></div></div><div class="grid grid-cols-2 gap-2 mt-1"><div class="flex flex-col"><label class="text-[8px] text-slate-400">開始日</label><div class="flex items-center gap-1"><input type="date" value="${g.startDate}" class="bg-transparent text-[10px] outline-none goal-start-date-input flex-1"><button type="button" class="px-1 bg-white rounded text-[8px]" onclick="document.activeElement.blur()">定</button></div></div><div class="flex flex-col"><label class="text-[8px] text-slate-400">期日</label><div class="flex items-center gap-1"><input type="date" value="${g.endDate}" class="bg-transparent text-[10px] outline-none goal-end-date-input flex-1"><button type="button" class="px-1 bg-white rounded text-[8px]" onclick="document.activeElement.blur()">定</button></div></div></div>`; container.appendChild(div); }); }
+            if (type === 'settings') { document.getElementById('settingsBirthDate').value = lifePlan.birthDate; document.getElementById('settingsExpectedAge').value = lifePlan.expectedAge; const container = document.getElementById('goalRowsContainer'); container.innerHTML = ''; (lifePlan.goals || []).forEach(g => { const div = document.createElement('div'); div.className = "p-3 bg-slate-100 rounded-xl space-y-2 relative goal-row shadow-sm"; div.dataset.id = g.id; div.innerHTML = `<button onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-slate-400 hover:text-red-500 text-sm font-bold">×</button><div class="flex gap-2"><input type="text" value="${g.title}" class="flex-1 border-b border-white py-1 outline-none text-xs bg-transparent font-bold goal-title-input"><input type="text" value="${g.unit}" class="w-12 border-b border-white py-1 outline-none text-xs bg-transparent goal-unit-input"></div><div class="grid grid-cols-3 gap-2"><div><label class="text-[8px] text-slate-400 uppercase">開始</label><input type="number" step="any" value="${g.startValue}" class="bg-transparent border-b border-white w-full text-[10px] outline-none goal-start-val-input font-bold"></div><div><label class="text-[8px] text-slate-400 uppercase">現在</label><input type="number" step="any" value="${g.current}" class="bg-transparent border-b border-white w-full text-[10px] outline-none goal-current-val-input font-bold"></div><div><label class="text-[8px] text-slate-400 uppercase text-sky-600">目標</label><input type="number" step="any" value="${g.target}" class="bg-transparent border-b border-white w-full text-[10px] outline-none goal-target-val-input font-bold"></div></div><div class="grid grid-cols-2 gap-2 mt-1"><div class="flex items-center gap-1"><input type="date" value="${g.startDate}" class="bg-transparent text-[10px] outline-none goal-start-date-input flex-1"><button type="button" class="px-1 bg-white rounded text-[8px]" onclick="document.activeElement.blur()">定</button></div><div class="flex items-center gap-1"><input type="date" value="${g.endDate}" class="bg-transparent text-[10px] outline-none goal-end-date-input flex-1"><button type="button" class="px-1 bg-white rounded text-[8px]" onclick="document.activeElement.blur()">定</button></div></div>`; container.appendChild(div); }); }
         };
         window.closeModal = (type) => { document.getElementById(`${type}Modal`).style.display = 'none'; };
         window.createTimer = async () => { const title = document.getElementById('newTimerTitle').value.trim(); if (!title) return; const nid = Date.now().toString(), nt = { id: nid, title, category: document.getElementById('newTimerCategory').value.trim() || '未分類', color: currentSelectedColor, alertDays: parseInt(document.getElementById('newTimerAlertDays').value) || 0, isExpanded: false, logs: [{ id: Date.now()+1, timestamp: new Date(document.getElementById('newTimerInitialDate').value).getTime(), memo: document.getElementById('newTimerInitialMemo').value.trim() }] }; await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', nid), nt); closeModal('timer'); };
@@ -314,7 +294,7 @@
         window.zoomImage = (src) => { document.getElementById('imageModalContent').src = src; document.getElementById('imageModal').style.display = 'flex'; };
 
         function updateCategoryList() { const cats = [...new Set(data.map(t => t.category))].filter(c => c !== '未分類'); document.getElementById('existingCategories').innerHTML = cats.map(c => `<option value="${c}">`).join(''); }
-        function renderCategories() { const cats = ['すべて', ...new Set(data.map(t => t.category))].sort(); document.getElementById('categoryTabs').innerHTML = cats.map(cat => `<button onclick="filterCategory('${cat}')" class="${selectedCategory === cat ? 'bg-slate-800 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200'} px-4 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap transition">${cat}</button>`).join(''); }
+        function renderCategories() { const cats = ['すべて', ...new Set(data.map(t => t.category))].sort(); document.getElementById('categoryTabs').innerHTML = cats.map(cat => `<button onclick="filterCategory('${cat}')" class="${selectedCategory === cat ? 'bg-slate-800 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200'} px-3 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap transition">${cat}</button>`).join(''); }
         
         function render() {
             renderTabs(); renderDashboard();
