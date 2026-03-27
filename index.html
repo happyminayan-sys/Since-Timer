@@ -69,7 +69,7 @@
         </div>
     </div>
 
-    <!-- Modals with Confirm Buttons for Date Input -->
+    <!-- Modals -->
     <div id="timerModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[100] backdrop-blur-sm">
         <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl text-left">
             <h3 class="text-lg font-bold mb-4 text-slate-800" id="timerModalTitle">タイマー設定</h3>
@@ -314,7 +314,7 @@
         window.zoomImage = (src) => { document.getElementById('imageModalContent').src = src; document.getElementById('imageModal').style.display = 'flex'; };
 
         function updateCategoryList() { const cats = [...new Set(data.map(t => t.category))].filter(c => c !== '未分類'); document.getElementById('existingCategories').innerHTML = cats.map(c => `<option value="${c}">`).join(''); }
-        function renderCategories() { const cats = ['すべて', ...new Set(data.map(t => t.category))].sort(); document.getElementById('categoryTabs').innerHTML = cats.map(cat => `<button onclick="filterCategory('${cat}')" class="${selectedCategory === cat ? 'bg-slate-800 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200'} px-3 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap transition">${cat}</button>`).join(''); }
+        function renderCategories() { const cats = ['すべて', ...new Set(data.map(t => t.category))].sort(); document.getElementById('categoryTabs').innerHTML = cats.map(cat => `<button onclick="filterCategory('${cat}')" class="${selectedCategory === cat ? 'bg-slate-800 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200'} px-4 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap transition">${cat}</button>`).join(''); }
         
         function render() {
             renderTabs(); renderDashboard();
@@ -332,7 +332,7 @@
                 if (timer.isExpanded && timer.logs.length > 0) {
                     timeline = `<div class="px-6 pb-6 pt-2 space-y-4 relative"><div class="timeline-line"></div>${timer.logs.map((log, idx) => {
                         const r = formatRelativeTime(log.timestamp);
-                        return `<div class="relative pl-8 group"><div class="timeline-dot"></div><div class="flex justify-between items-start"><div class="flex-1" onclick="event.stopPropagation(); openModal('log', '${timer.id}', ${log.id})"><div class="flex items-center gap-2 mb-1"><span class="text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm ${r.isFuture ? 'bg-orange-600' : 'bg-indigo-800'} text-white">${r.actionLabel} (${r.text})</span><span class="text-[9px] text-slate-500 font-bold">${new Date(log.timestamp).toLocaleDateString()}</span></div>${log.memo ? `<p class="text-[10px] text-slate-700 mt-1 bg-white/40 p-1.5 rounded leading-relaxed shadow-sm">${log.memo.replace(/\n/g, '<br>')}</p>` : ''}</div><button onclick="event.stopPropagation(); deleteLog('${timer.id}', ${log.id})" class="p-1.5 text-red-400 bg-white/80 hover:bg-red-500 hover:text-white rounded-lg transition-all ml-1 shadow-sm"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button></div></div>`;
+                        return `<div class="relative pl-8 group"><div class="timeline-dot"></div><div class="flex justify-between items-start"><div class="flex-1" onclick="event.stopPropagation(); openModal('log', '${timer.id}', ${log.id})"><div class="flex items-center gap-2 mb-1"><span class="text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm ${r.isFuture ? 'bg-orange-600' : 'bg-indigo-800'} text-white">${r.actionLabel} (${r.text})</span><span class="text-[9px] text-slate-500 font-bold">${new Date(log.timestamp).toLocaleDateString()}</span></div>${log.memo ? `<p class="text-[10px] text-slate-700 mt-1 bg-white/40 p-1.5 rounded leading-relaxed shadow-sm">${log.memo.replace(/\n/g, '<br>')}</p>` : ''}${log.image ? `<img src="${log.image}" onclick="event.stopPropagation(); zoomImage('${log.image}')" class="mt-1 w-20 h-20 object-cover rounded shadow-sm hover:scale-105 transition cursor-zoom-in">` : ''}</div><button onclick="event.stopPropagation(); deleteLog('${timer.id}', ${log.id})" class="p-1.5 text-red-400 bg-white/80 hover:bg-red-500 hover:text-white rounded-lg transition-all ml-1 shadow-sm"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button></div></div>`;
                     }).join('')}</div>`;
                 }
                 const bCol = rel ? (alerting ? 'bg-red-600 text-white animate-pulse' : (rel.isFuture ? 'bg-orange-600 text-white' : 'bg-indigo-800 text-white')) : '';
