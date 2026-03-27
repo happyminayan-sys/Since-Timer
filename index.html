@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timeline Context Manager Cloud Pro (Integrated v2)</title>
+    <title>Timeline Context Manager Cloud Pro (Dynamic Dashboards)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap');
@@ -17,13 +17,15 @@
         .color-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
         .color-dot.active { border-color: #334155; transform: scale(1.1); box-shadow: 0 0 0 2px #fff; }
         .circle-progress { transform: rotate(-90deg); transform-origin: 50% 50%; }
+        .progress-indicator { transition: stroke-dashoffset 0.5s ease; }
     </style>
 </head>
 <body class="text-slate-900 pb-12">
+    <!-- Login Overlay -->
     <div id="loginOverlay" class="fixed inset-0 bg-white z-[200] flex items-center justify-center p-6 hidden">
         <div class="max-w-sm w-full text-center">
             <h1 class="text-3xl font-black tracking-tighter text-slate-800 mb-2">Timeline Since</h1>
-            <p class="text-sm text-slate-500 mb-8 leading-relaxed">複数端末での同期と、安全なデータ管理のためにGoogleでログインしてください。</p>
+            <p class="text-sm text-slate-500 mb-8 leading-relaxed">安全なデータ管理のためにGoogleでログインしてください。</p>
             <button onclick="signInWithGoogle()" class="w-full bg-white border-2 border-slate-200 text-slate-700 py-4 rounded-2xl font-bold shadow-sm hover:bg-slate-50 transition-all flex items-center justify-center gap-3 active:scale-95">
                 <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                 Googleで開始
@@ -39,20 +41,18 @@
                         <h1 class="text-2xl font-black tracking-tighter text-slate-800">Timeline Since</h1>
                         <p class="text-xs text-slate-500 font-medium italic" id="syncStatus">Syncing...</p>
                     </div>
-                    <button onclick="handleLogout()" class="text-[10px] text-slate-400 hover:text-red-500 underline mb-1">ログアウト</button>
+                    <button onclick="handleLogout()" class="text-[10px] text-slate-400 hover:text-red-500 underline">ログアウト</button>
                 </div>
 
-                <div class="bg-slate-900 rounded-3xl p-6 mb-6 shadow-2xl overflow-hidden relative border-t border-white/10">
-                    <button onclick="openModal('settings')" class="absolute top-4 right-4 text-slate-500 hover:text-white transition">
+                <!-- Dynamic Multi-Dashboard -->
+                <div class="bg-slate-900 rounded-3xl p-6 mb-6 shadow-2xl relative border-t border-white/10">
+                    <button onclick="openModal('settings')" class="absolute top-4 right-4 text-slate-500 hover:text-white transition z-10">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     </button>
-                    <div class="flex justify-around mb-4 border-b border-white/10 pb-2 mr-6">
-                        <button onclick="changeDashboardTab('life')" id="tab-life" class="text-[10px] font-bold text-slate-400 px-1 pb-1">人生</button>
-                        <button onclick="changeDashboardTab('assets')" id="tab-assets" class="text-[10px] font-bold text-amber-400 border-b-2 border-amber-400 px-1 pb-1">資産</button>
-                        <button onclick="changeDashboardTab('year')" id="tab-year" class="text-[10px] font-bold text-slate-400 px-1 pb-1">今年</button>
-                        <button onclick="changeDashboardTab('day')" id="tab-day" class="text-[10px] font-bold text-slate-400 px-1 pb-1">今日</button>
+                    <div id="dashboardTabs" class="flex gap-4 mb-4 border-b border-white/10 pb-2 mr-8 overflow-x-auto no-scrollbar">
+                        <!-- Tabs injected here -->
                     </div>
-                    <div id="dashboardContent" class="text-center py-2"></div>
+                    <div id="dashboardContent" class="text-center py-2 flex flex-col items-center min-h-[180px] justify-center"></div>
                 </div>
 
                 <div class="flex gap-2 items-center mb-6">
@@ -62,7 +62,7 @@
                     </button>
                     <button onclick="exportCSV()" class="p-3 bg-slate-800 text-white rounded-xl shadow-lg shadow-slate-200 hover:bg-slate-700 active:scale-95 transition-all"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></button>
                     <label class="p-3 bg-white border border-slate-200 text-slate-500 rounded-xl shadow-sm hover:bg-slate-50 active:scale-95 transition-all cursor-pointer">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                         <input type="file" class="hidden" accept=".csv" onchange="importSpreadsheetCSV(event)">
                     </label>
                     <button onclick="exportJSON()" class="p-3 bg-white border border-slate-200 text-slate-500 rounded-xl shadow-sm hover:bg-slate-50 active:scale-95 transition-all"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg></button>
@@ -72,17 +72,9 @@
                     </label>
                 </div>
 
-                <div class="flex items-center justify-between mb-2">
-                    <div id="categoryTabs" class="flex gap-2 overflow-x-auto no-scrollbar flex-1 mr-2"></div>
-                    <select onchange="updateSort(this.value)" id="sortSelector" class="bg-white border border-slate-300 text-slate-600 text-[10px] font-bold rounded-lg px-2 py-1 outline-none">
-                        <option value="recent">直近日時順</option>
-                        <option value="modified">最終記録順</option>
-                        <option value="created">作成順</option>
-                        <option value="name">名前順</option>
-                    </select>
-                </div>
-            </header>
-            <div id="mainContainer" class="space-y-6"></div>
+                <div id="categoryTabs" class="flex gap-2 overflow-x-auto no-scrollbar mb-6"></div>
+                <div id="mainContainer" class="space-y-6"></div>
+            </div>
         </div>
     </div>
 
@@ -94,17 +86,7 @@
                 <div><label class="text-[10px] font-bold text-slate-400 uppercase">カテゴリ</label><input type="text" id="newTimerCategory" list="existingCategories" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm bg-transparent"><datalist id="existingCategories"></datalist></div>
                 <div><label class="text-[10px] font-bold text-slate-400 uppercase">タイトル</label><input type="text" id="newTimerTitle" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm"></div>
                 <div class="flex gap-4">
-                    <div class="flex-1">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase">背景カラー</label>
-                        <div class="flex gap-2 mt-2 flex-wrap" id="colorPicker">
-                            <div class="color-dot active bg-white border-slate-400" title="自動" data-color="default"></div>
-                            <div class="color-dot bg-white border-slate-200" title="白" data-color="white"></div>
-                            <div class="color-dot bg-indigo-200" title="藍" data-color="indigo"></div>
-                            <div class="color-dot bg-orange-200" title="橙" data-color="orange"></div>
-                            <div class="color-dot bg-emerald-200" data-color="emerald"></div>
-                            <div class="color-dot bg-rose-200" data-color="rose"></div>
-                        </div>
-                    </div>
+                    <div class="flex-1"><label class="text-[10px] font-bold text-slate-400 uppercase">背景カラー</label><div class="flex gap-2 mt-2 flex-wrap" id="colorPicker"><div class="color-dot active bg-white border-slate-400" data-color="default"></div><div class="color-dot bg-white border-slate-200" data-color="white"></div><div class="color-dot bg-indigo-200" data-color="indigo"></div><div class="color-dot bg-orange-200" data-color="orange"></div><div class="color-dot bg-emerald-200" data-color="emerald"></div><div class="color-dot bg-rose-200" data-color="rose"></div></div></div>
                     <div class="w-24"><label class="text-[10px] font-bold text-slate-400 uppercase">アラート（日）</label><input type="number" id="newTimerAlertDays" placeholder="0" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm text-center"></div>
                 </div>
                 <div id="initialDateGroup"><label class="text-[10px] font-bold text-slate-400 uppercase">初回日時</label><input type="datetime-local" id="newTimerInitialDate" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm"><label class="text-[10px] font-bold text-slate-400 uppercase mt-2 block">メモ</label><textarea id="newTimerInitialMemo" class="w-full border rounded-lg p-2 mt-1 text-sm h-16 resize-none border-slate-200"></textarea></div>
@@ -114,15 +96,26 @@
     </div>
 
     <div id="settingsModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[100] backdrop-blur-sm">
-        <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl text-left">
-            <h3 class="text-lg font-bold mb-4 text-slate-800 tracking-tight">ライフプラン設定</h3>
-            <div class="space-y-4">
-                <div><label class="text-[10px] font-bold text-slate-400 uppercase">生年月日</label><input type="date" id="settingsBirthDate" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm"></div>
-                <div><label class="text-[10px] font-bold text-slate-400 uppercase">予想寿命（歳）</label><input type="number" id="settingsExpectedAge" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm"></div>
-                <div><label class="text-[10px] font-bold text-slate-400 uppercase">資産目標1（歳：退職・現金バケツ）</label><input type="number" id="settingsAssetAge1" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm"></div>
-                <div><label class="text-[10px] font-bold text-slate-400 uppercase">資産目標2（歳：定率取崩開始）</label><input type="number" id="settingsAssetAge2" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm"></div>
+        <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl text-left overflow-y-auto max-h-[90vh] no-scrollbar">
+            <h3 class="text-lg font-bold mb-4 text-slate-800 tracking-tight">ライフプラン & 動的タブ設定</h3>
+            <div class="space-y-6">
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">生年月日</label><input type="date" id="settingsBirthDate" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm"></div>
+                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">寿命目安</label><input type="number" id="settingsExpectedAge" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm"></div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100">
+                    <label class="text-[10px] font-black text-slate-500 uppercase flex justify-between items-center mb-2">
+                        <span>資産目標・カスタムタブ</span>
+                        <button onclick="addNewGoalRow()" class="text-sky-500 hover:text-sky-600 text-[10px]">+ 追加</button>
+                    </label>
+                    <div id="goalRowsContainer" class="space-y-4">
+                        <!-- Goal inputs injected here -->
+                    </div>
+                </div>
+
                 <div class="flex gap-2 pt-4">
-                    <button onclick="closeModal('settings')" class="flex-1 py-3 text-slate-500 font-bold">中止</button>
+                    <button onclick="closeModal('settings')" class="flex-1 py-3 text-slate-500 font-bold">閉じる</button>
                     <button onclick="saveProfileSettings()" class="flex-1 py-3 bg-amber-500 text-white rounded-xl font-bold shadow-lg">設定を保存</button>
                 </div>
             </div>
@@ -134,34 +127,13 @@
             <h3 class="text-lg font-bold mb-4 text-slate-800" id="logModalTitle">履歴追加</h3>
             <div class="space-y-4">
                 <input type="datetime-local" id="newLogDate" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm">
-                
-                <!-- Logic: Photo Action Choice UI -->
-                <div>
-                    <label class="text-[10px] font-bold text-slate-400 uppercase">写真を追加</label>
-                    <div class="grid grid-cols-2 gap-2 mt-1">
-                        <label class="flex flex-col items-center justify-center gap-1 py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 cursor-pointer hover:bg-slate-50 transition active:scale-95">
-                            <svg class="w-6 h-6 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            <span class="text-[10px] font-bold">カメラで撮影</span>
-                            <input type="file" class="hidden" accept="image/*" capture="environment" onchange="handlePhotoSelect(event)">
-                        </label>
-                        <label class="flex flex-col items-center justify-center gap-1 py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 cursor-pointer hover:bg-slate-50 transition active:scale-95">
-                            <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            <span class="text-[10px] font-bold">フォルダから選択</span>
-                            <input type="file" class="hidden" accept="image/*" onchange="handlePhotoSelect(event)">
-                        </label>
-                    </div>
+                <div class="grid grid-cols-2 gap-2 mt-1">
+                    <label class="flex flex-col items-center justify-center gap-1 py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 cursor-pointer hover:bg-slate-50 transition active:scale-95"><svg class="w-6 h-6 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span class="text-[10px] font-bold">撮影</span><input type="file" class="hidden" accept="image/*" capture="environment" onchange="handlePhotoSelect(event)"></label>
+                    <label class="flex flex-col items-center justify-center gap-1 py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 cursor-pointer hover:bg-slate-50 transition active:scale-95"><svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span class="text-[10px] font-bold">選択</span><input type="file" class="hidden" accept="image/*" onchange="handlePhotoSelect(event)"></label>
                 </div>
-
-                <div id="photoPreviewContainer" class="hidden relative">
-                    <img id="photoPreview" class="w-full h-32 object-cover rounded-lg border">
-                    <button onclick="removeSelectedPhoto()" class="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
-                </div>
-                
+                <div id="photoPreviewContainer" class="hidden relative"><img id="photoPreview" class="w-full h-32 object-cover rounded-lg border"><button onclick="removeSelectedPhoto()" class="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button></div>
                 <textarea id="newLogMemo" class="w-full border rounded-lg p-2 text-sm h-24 resize-none border-slate-200" placeholder="メモを入力"></textarea>
-                <div class="flex gap-2 pt-2">
-                    <button onclick="closeModal('log')" class="flex-1 py-3 text-slate-500 font-bold">中止</button>
-                    <button id="logSubmitBtn" onclick="addLog()" class="flex-1 py-3 bg-sky-50 text-sky-600 font-bold rounded-xl border border-sky-100">確定</button>
-                </div>
+                <div class="flex gap-2 pt-2"><button onclick="closeModal('log')" class="flex-1 py-3 text-slate-500 font-bold">中止</button><button id="logSubmitBtn" onclick="addLog()" class="flex-1 py-3 bg-sky-50 text-sky-600 font-bold rounded-xl border border-sky-100">確定</button></div>
             </div>
         </div>
     </div>
@@ -173,7 +145,7 @@
         </div>
     </div>
 
-    <div id="imageModal" class="fixed inset-0 bg-black/90 hidden items-center justify-center p-4 z-[250]" onclick="closeModal('image')"><img id="imageModalContent" class="max-w-full max-h-full rounded-lg shadow-2xl"></div>
+    <div id="imageModal" class="fixed inset-0 bg-black/90 hidden items-center justify-center p-4 z-[250]" onclick="closeModal('image')"><img id="imageModalContent" class="max-w-full max-h-full rounded-lg"></div>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
@@ -192,13 +164,20 @@
         let user = null;
         let selectedCategory = 'すべて';
         let sortMode = 'recent'; 
-        let dashboardTab = 'assets'; 
-        let currentEditingTimerId = null;
-        let currentEditingLogId = null;
+        let dashboardTab = 'day'; 
         let currentSelectedPhotoBase64 = null;
         let currentSelectedColor = 'default';
+        let currentEditingTimerId = null;
+        let currentEditingLogId = null;
 
-        let lifePlan = { birthDate: "1967-12-08", expectedAge: 90, assetAge1: 62, assetAge2: 65 };
+        // Logic Update: Multi-Goal Architecture
+        let lifePlan = {
+            birthDate: "1967-12-08",
+            expectedAge: 90,
+            goals: [
+                { id: 'g1', title: "資産目標", current: 35000000, target: 50000000, startDate: "2024-01-01", endDate: "2029-12-08" }
+            ]
+        };
 
         onAuthStateChanged(auth, async (u) => {
             if (u && !u.isAnonymous) {
@@ -220,15 +199,57 @@
 
         async function loadProfileSettings() {
             const snap = await getDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'settings', 'config'));
-            if (snap.exists()) lifePlan = { ...lifePlan, ...snap.data() };
+            if (snap.exists()) {
+                const fetched = snap.data();
+                lifePlan = { ...lifePlan, ...fetched };
+                if (!Array.isArray(lifePlan.goals)) lifePlan.goals = [];
+            }
         }
 
+        window.addNewGoalRow = () => {
+            const container = document.getElementById('goalRowsContainer');
+            const id = 'g' + Date.now();
+            const div = document.createElement('div');
+            div.className = "p-3 bg-slate-100 rounded-xl space-y-2 relative goal-row";
+            div.dataset.id = id;
+            div.innerHTML = `
+                <button onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-slate-400 hover:text-red-500 text-xs">×</button>
+                <input type="text" placeholder="目標名 (例: 旅行)" class="w-full border-b border-white py-1 outline-none text-xs bg-transparent font-bold goal-title-input">
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="number" placeholder="現在額" class="w-full border-b border-white py-1 outline-none text-[10px] bg-transparent goal-current-input">
+                    <input type="number" placeholder="目標額" class="w-full border-b border-white py-1 outline-none text-[10px] bg-transparent goal-target-input">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="flex flex-col"><label class="text-[8px] text-slate-400">開始日</label><input type="date" class="bg-transparent text-[10px] outline-none goal-start-input"></div>
+                    <div class="flex flex-col"><label class="text-[8px] text-slate-400">目標日</label><input type="date" class="bg-transparent text-[10px] outline-none goal-end-input"></div>
+                </div>
+            `;
+            container.appendChild(div);
+        };
+
         window.saveProfileSettings = async () => {
-            const birth = document.getElementById('settingsBirthDate').value, exp = parseInt(document.getElementById('settingsExpectedAge').value), a1 = parseInt(document.getElementById('settingsAssetAge1').value), a2 = parseInt(document.getElementById('settingsAssetAge2').value);
-            if (!birth || !exp || !a1 || !a2) return;
-            lifePlan = { birthDate: birth, expectedAge: exp, assetAge1: a1, assetAge2: a2 };
+            const birth = document.getElementById('settingsBirthDate').value;
+            const exp = parseInt(document.getElementById('settingsExpectedAge').value);
+            
+            const goals = [];
+            document.querySelectorAll('.goal-row').forEach(row => {
+                const title = row.querySelector('.goal-title-input').value;
+                if (!title) return;
+                goals.push({
+                    id: row.dataset.id,
+                    title: title,
+                    current: parseFloat(row.querySelector('.goal-current-input').value) || 0,
+                    target: parseFloat(row.querySelector('.goal-target-input').value) || 1,
+                    startDate: row.querySelector('.goal-start-input').value,
+                    endDate: row.querySelector('.goal-end-input').value
+                });
+            });
+
+            lifePlan = { birthDate: birth, expectedAge: exp, goals: goals };
             await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'settings', 'config'), lifePlan);
-            closeModal('settings'); render();
+            closeModal('settings');
+            changeDashboardTab('day'); // Reset to default
+            render();
         };
 
         function setupRealtimeSync() {
@@ -243,8 +264,7 @@
             else if (totalDaysFloor >= 30) breakdown = `${Math.floor(totalDaysFloor/30.44)}ヶ月${Math.floor(totalDaysFloor%30.44)}日${suffix}`;
             else if (totalDaysFloor >= 1) breakdown = `${totalDaysFloor}日${suffix}`;
             else breakdown = "たった今";
-            const actionLabel = diff < 0 ? `あと ${totalDaysFloor}日` : `${totalDaysFloor}日経過`;
-            return { text: breakdown, actionLabel: actionLabel, isFuture: diff < 0, totalDays: totalDaysFloor };
+            return { text: breakdown, actionLabel: diff < 0 ? `あと ${totalDaysFloor}日` : `${totalDaysFloor}日経過`, isFuture: diff < 0, totalDays: totalDaysFloor };
         }
 
         function calculateInterval(currentMs, prevMs) {
@@ -252,43 +272,87 @@
             const diff = Math.abs(currentMs - prevMs), totalDays = Math.floor(diff / 86400000);
             let res = "前回から";
             if (totalDays >= 30) res += Math.floor(totalDays / 30.44) + "ヶ月";
-            res += Math.floor(totalDays % 30.44) + "日";
+            res += (totalDays % 30.44 === 0 ? "" : Math.floor(totalDays % 30.44) + "日");
             return res;
         }
 
-        window.changeDashboardTab = (tab) => {
-            dashboardTab = tab;
-            ['life', 'assets', 'year', 'day'].forEach(t => {
-                const el = document.getElementById('tab-' + t);
-                if (el) el.className = `text-[10px] font-bold px-1 pb-1 ${t === tab ? (t === 'assets' ? 'text-amber-400 border-b-2 border-amber-400' : 'text-sky-400 border-b-2 border-sky-400') : 'text-slate-400'}`;
-            });
+        window.changeDashboardTab = (tabId) => {
+            dashboardTab = tabId;
+            renderTabs();
             renderDashboard();
         };
+
+        function renderTabs() {
+            const container = document.getElementById('dashboardTabs');
+            const standard = [
+                { id: 'day', label: '今日' },
+                { id: 'year', label: '今年' },
+                { id: 'life', label: '人生' }
+            ];
+            const goals = (lifePlan.goals || []).map(g => ({ id: g.id, label: g.title }));
+            const allTabs = [...standard, ...goals];
+
+            container.innerHTML = allTabs.map(t => {
+                const isActive = dashboardTab === t.id;
+                let colorClass = isActive ? 'text-sky-400 border-b-2 border-sky-400' : 'text-slate-400';
+                if (isActive && !['day','year','life'].includes(t.id)) colorClass = 'text-amber-400 border-b-2 border-amber-400';
+                return `<button onclick="changeDashboardTab('${t.id}')" id="tab-${t.id}" class="text-[10px] font-bold px-2 pb-1 whitespace-nowrap transition-all ${colorClass}">${t.label}</button>`;
+            }).join('');
+        }
 
         function renderDashboard() {
             const content = document.getElementById('dashboardContent'); if(!content) return;
             const now = new Date(), birth = new Date(lifePlan.birthDate);
-            let percent = 0, title = "", mainVal = "", subVal = "", colorClass = "stroke-sky-500";
-            if (dashboardTab === 'life') {
-                const totalLife = lifePlan.expectedAge * 365.25, usedLife = (now - birth) / 86400000;
-                percent = Math.max(0, Math.floor(((totalLife - usedLife) / totalLife) * 100));
-                title = `残り人生 (${lifePlan.expectedAge}歳迄)`; mainVal = `${Math.floor(totalLife - usedLife)}日`; subVal = `使った人生: ${Math.floor(usedLife)}日`; colorClass = "stroke-purple-500";
-            } else if (dashboardTab === 'assets') {
-                const target1 = new Date(birth.getTime()); target1.setFullYear(target1.getFullYear() + lifePlan.assetAge1);
-                const target2 = new Date(birth.getTime()); target2.setFullYear(target2.getFullYear() + lifePlan.assetAge2);
-                const totalFinPhase = (target1 - birth) / 86400000, usedFinPhase = (now - birth) / 86400000;
-                percent = Math.max(0, Math.floor(((totalFinPhase - usedFinPhase) / totalFinPhase) * 100));
-                title = `${lifePlan.assetAge1}歳退職 (目標1) 迄`; mainVal = `${Math.floor((target1 - now) / 86400000)}日`; subVal = `${lifePlan.assetAge2}歳取崩し開始まで: あと ${Math.floor((target2 - now) / 86400000)}日`; colorClass = "stroke-amber-500";
+            let percent = 0, title = "", mainVal = "", subVal = "", colorClass = "stroke-sky-500", timePercent = -1;
+
+            if (dashboardTab === 'day') {
+                const used = (now - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 1000;
+                percent = Math.floor(((86400 - used) / 86400) * 100); title = "残り今日"; colorClass = "stroke-sky-400";
+                mainVal = `${Math.floor((86400-used)/3600)}時 ${Math.floor(((86400-used)%3600)/60)}分`;
+                subVal = `使った今日: ${Math.floor(used/3600)}時 ${Math.floor((used%3600)/60)}分`;
             } else if (dashboardTab === 'year') {
-                const startOfYear = new Date(now.getFullYear(), 0, 1), endOfYear = new Date(now.getFullYear() + 1, 0, 1), totalYear = (endOfYear - startOfYear) / 86400000, usedYear = (now - startOfYear) / 86400000;
-                percent = Math.max(0, Math.floor(((totalYear - usedYear) / totalYear) * 100));
-                title = "残り今年"; mainVal = `${Math.floor(totalYear - usedYear)}日`; subVal = `使った今年: ${Math.floor(usedYear)}日`; colorClass = "stroke-indigo-500";
-            } else if (dashboardTab === 'day') {
-                const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()), usedSec = (now - startOfDay) / 1000, rem = 86400 - usedSec;
-                percent = Math.floor((rem / 86400) * 100); title = "残り今日"; mainVal = `${Math.floor(rem/3600)}時 ${Math.floor((rem%3600)/60)}分`; subVal = `使った今日: ${Math.floor(usedSec/3600)}時 ${Math.floor((usedSec%3600)/60)}分`; colorClass = "stroke-sky-400";
+                const start = new Date(now.getFullYear(), 0, 1), end = new Date(now.getFullYear() + 1, 0, 1);
+                percent = Math.max(0, Math.floor(((end - now) / (end - start)) * 100)); title = "残り今年"; colorClass = "stroke-indigo-500";
+                mainVal = `${Math.floor((end-now)/86400000)}日`; subVal = `使った今年: ${Math.floor((now-start)/86400000)}日`;
+            } else if (dashboardTab === 'life') {
+                const total = lifePlan.expectedAge * 365.25, used = (now - birth) / 86400000;
+                percent = Math.max(0, Math.floor(((total - used) / total) * 100)); title = `残り人生 (${lifePlan.expectedAge}歳迄)`; colorClass = "stroke-purple-500";
+                mainVal = `${Math.floor(total - used)}日`; subVal = `使った人生: ${Math.floor(used)}日`;
+            } else {
+                const g = (lifePlan.goals || []).find(x => x.id === dashboardTab);
+                if (g) {
+                    const start = new Date(g.startDate), end = new Date(g.endDate);
+                    percent = Math.floor((g.current / g.target) * 100);
+                    timePercent = Math.min(100, Math.max(0, Math.floor(((now - start) / (end - start)) * 100)));
+                    title = `${g.title} (目標達成迄)`; 
+                    mainVal = `${Math.max(0, Math.floor((end - now)/86400000))}日`;
+                    subVal = `目標: ${g.target.toLocaleString()}円 / 現在: ${g.current.toLocaleString()}円`;
+                    colorClass = (percent >= timePercent) ? "stroke-emerald-500" : "stroke-rose-500";
+                }
             }
+
             const r = 45, circ = 2 * Math.PI * r, offset = circ - (percent / 100) * circ;
-            content.innerHTML = `<div class="relative inline-block"><svg width="110" height="110" class="circle-progress"><circle cx="55" cy="55" r="${r}" stroke="#334155" stroke-width="12" fill="transparent" /><circle cx="55" cy="55" r="${r}" class="${colorClass}" stroke-width="12" stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round" fill="transparent" /></svg><div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-2xl font-black text-white">${percent}<span class="text-xs">%</span></span><span class="text-[8px] text-slate-400 uppercase font-bold tracking-widest">残り</span></div></div><div class="mt-4"><p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">${title}</p><h2 class="text-3xl font-black text-white tracking-tighter">${mainVal}</h2><p class="text-[10px] font-bold text-slate-500 mt-1">${subVal}</p></div>`;
+            const timeOffset = timePercent >= 0 ? circ - (timePercent / 100) * circ : 0;
+            
+            content.innerHTML = `
+                <div class="relative inline-block">
+                    <svg width="110" height="110" class="circle-progress">
+                        <circle cx="55" cy="55" r="${r}" stroke="#1e293b" stroke-width="12" fill="transparent" />
+                        ${timePercent >= 0 ? `<circle cx="55" cy="55" r="${r}" stroke="#334155" stroke-width="4" stroke-dasharray="${circ}" stroke-dashoffset="${timeOffset}" fill="transparent" />` : ''}
+                        <circle cx="55" cy="55" r="${r}" class="progress-indicator ${colorClass}" stroke-width="12" stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round" fill="transparent" />
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span class="text-2xl font-black text-white">${percent}<span class="text-xs">%</span></span>
+                        <span class="text-[8px] text-slate-400 uppercase font-bold tracking-widest">${timePercent >= 0 ? '達成' : '残り'}</span>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">${title}</p>
+                    <h2 class="text-3xl font-black text-white tracking-tighter">${mainVal}</h2>
+                    <p class="text-[10px] font-bold text-slate-500 mt-1">${subVal}</p>
+                    ${timePercent >= 0 ? `<p class="text-[9px] font-bold mt-2 ${percent >= timePercent ? 'text-emerald-400' : 'text-rose-400'}">${percent >= timePercent ? '順調に進んでいます' : '進捗が遅れています'}</p>` : ''}
+                </div>
+            `;
         }
 
         window.handlePhotoSelect = (e) => {
@@ -325,7 +389,7 @@
                         else { const nid = (Date.now() + Math.random()).toString(), nt = { id: nid, title, category: cat, color: 'default', alertDays: 0, isExpanded: false, logs: [{ id: Date.now() + Math.random(), timestamp: ts, memo: cols[3] || "" }] }; localDataRef.push(nt); await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', nid), nt); processedCount++; }
                     } catch (err) {}
                 }
-                alert(`${processedCount}件のデータを統合しました。`);
+                alert(`${processedCount}件のデータを統合。`);
             }; reader.readAsArrayBuffer(f);
         };
 
@@ -338,6 +402,13 @@
                     if (Array.isArray(imported)) { for (const timer of imported) { const docId = (timer.id || Date.now() + Math.random()).toString(); await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', docId), timer); } alert('JSON復元完了。'); }
                 } catch (err) { alert('読み込み失敗'); }
             }; reader.readAsText(f);
+        };
+
+        window.exportJSON = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })); a.download = `timer_backup.json`; a.click(); };
+        window.exportCSV = () => {
+            const header = ["Category", "Title", "LogDate", "LogMemo"], rows = []; data.forEach(t => t.logs.forEach(l => { const localDate = new Date(l.timestamp).toLocaleString('ja-JP').replace(/\//g, '-'); rows.push([t.category, t.title, localDate, l.memo]); }));
+            const csv = "\uFEFF" + [header.join(","), ...rows.map(r => r.map(v => `"${(v||"").toString().replace(/"/g,'""')}"`).join(","))].join("\n");
+            const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `timer_export.csv`; a.click();
         };
 
         window.openModal = (type, id = null, logId = null) => {
@@ -365,7 +436,17 @@
                     document.getElementById('logSubmitBtn').onclick = updateLog;
                 } else { document.getElementById('newLogDate').value = ds; document.getElementById('newLogMemo').value = ""; document.getElementById('logSubmitBtn').onclick = addLog; }
             }
-            if (type === 'settings') { document.getElementById('settingsBirthDate').value = lifePlan.birthDate; document.getElementById('settingsExpectedAge').value = lifePlan.expectedAge; document.getElementById('settingsAssetAge1').value = lifePlan.assetAge1; document.getElementById('settingsAssetAge2').value = lifePlan.assetAge2; }
+            if (type === 'settings') {
+                document.getElementById('settingsBirthDate').value = lifePlan.birthDate;
+                document.getElementById('settingsExpectedAge').value = lifePlan.expectedAge;
+                const container = document.getElementById('goalRowsContainer');
+                container.innerHTML = '';
+                (lifePlan.goals || []).forEach(g => {
+                    const div = document.createElement('div'); div.className = "p-3 bg-slate-100 rounded-xl space-y-2 relative goal-row"; div.dataset.id = g.id;
+                    div.innerHTML = `<button onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-slate-400 hover:text-red-500 text-xs">×</button><input type="text" value="${g.title}" placeholder="目標名" class="w-full border-b border-white py-1 outline-none text-xs bg-transparent font-bold goal-title-input"><div class="grid grid-cols-2 gap-2"><input type="number" value="${g.current}" placeholder="現在額" class="w-full border-b border-white py-1 outline-none text-[10px] bg-transparent goal-current-input"><input type="number" value="${g.target}" placeholder="目標額" class="w-full border-b border-white py-1 outline-none text-[10px] bg-transparent goal-target-input"></div><div class="grid grid-cols-2 gap-2"><div class="flex flex-col"><label class="text-[8px] text-slate-400">開始日</label><input type="date" value="${g.startDate}" class="bg-transparent text-[10px] outline-none goal-start-input"></div><div class="flex flex-col"><label class="text-[8px] text-slate-400">目標日</label><input type="date" value="${g.endDate}" class="bg-transparent text-[10px] outline-none goal-end-input"></div></div>`;
+                    container.appendChild(div);
+                });
+            }
         };
 
         window.closeModal = (type) => { document.getElementById(`${type}Modal`).style.display = 'none'; };
@@ -389,7 +470,6 @@
         };
 
         window.deleteTimer = (id) => { document.getElementById('deleteTargetName').innerText = "タイマー全体を削除"; document.getElementById('deleteModal').style.display = 'flex'; document.getElementById('deleteExecuteBtn').onclick = async () => { await deleteDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id.toString())); closeModal('delete'); }; };
-
         window.deleteLog = (timerId, logId) => { document.getElementById('deleteTargetName').innerText = "この履歴を削除"; document.getElementById('deleteModal').style.display = 'flex'; document.getElementById('deleteExecuteBtn').onclick = async () => { const t = data.find(t => t.id === timerId.toString()), logs = t.logs.filter(l => l.id !== logId); await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', timerId.toString()), { logs: logs }); closeModal('delete'); }; };
 
         window.toggleExpand = async (id) => { const t = data.find(t => t.id === id.toString()); await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id.toString()), { isExpanded: !t.isExpanded }); };
@@ -397,16 +477,11 @@
         window.updateSort = (mode) => { sortMode = mode; render(); };
         window.zoomImage = (src) => { document.getElementById('imageModalContent').src = src; document.getElementById('imageModal').style.display = 'flex'; };
 
-        window.exportCSV = () => {
-            const header = ["Category", "Title", "LogDate", "LogMemo"], rows = []; data.forEach(t => t.logs.forEach(l => { const localDate = new Date(l.timestamp).toLocaleString('ja-JP').replace(/\//g, '-'); rows.push([t.category, t.title, localDate, l.memo]); }));
-            const csv = "\uFEFF" + [header.join(","), ...rows.map(r => r.map(v => `"${(v||"").toString().replace(/"/g,'""')}"`).join(","))].join("\n");
-            const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `timer_export.csv`; a.click();
-        };
-
         function updateCategoryList() { const cats = [...new Set(data.map(t => t.category))].filter(c => c !== '未分類'); document.getElementById('existingCategories').innerHTML = cats.map(c => `<option value="${c}">`).join(''); }
         function renderCategories() { const cats = ['すべて', ...new Set(data.map(t => t.category))].sort(); document.getElementById('categoryTabs').innerHTML = cats.map(cat => `<button onclick="filterCategory('${cat}')" class="${selectedCategory === cat ? 'bg-slate-800 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200'} px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition">${cat}</button>`).join(''); }
         
         function render() {
+            renderTabs();
             renderDashboard();
             const container = document.getElementById('mainContainer'); if(!container) return; container.innerHTML = '';
             let filtered = selectedCategory === 'すべて' ? [...data] : data.filter(t => t.category === selectedCategory);
@@ -421,22 +496,26 @@
                 const latest = timer.logs[0], relTime = latest ? formatRelativeTime(latest.timestamp) : null;
                 let isAlerting = false; if (relTime && timer.alertDays > 0) { if ((relTime.isFuture && relTime.totalDays <= timer.alertDays) || (!relTime.isFuture && relTime.totalDays >= timer.alertDays)) isAlerting = true; }
                 let col = 'bg-white border-slate-300';
-                if (timer.color && timer.color !== 'default') { const p = { white: 'bg-white border-slate-300', indigo: 'bg-indigo-100 border-indigo-300', orange: 'bg-orange-100 border-orange-300', emerald: 'bg-emerald-100 border-emerald-300', rose: 'bg-rose-100 border-rose-300' }; col = p[timer.color] || col; }
-                else if (relTime) { col = relTime.isFuture ? 'bg-orange-100 border-orange-300' : 'bg-indigo-100 border-indigo-300'; }
+                if (timer.color && timer.color !== 'default') {
+                    const p = { white: 'bg-white border-slate-300', indigo: 'bg-indigo-100 border-indigo-300', orange: 'bg-orange-100 border-orange-300', emerald: 'bg-emerald-100 border-emerald-300', rose: 'bg-rose-100 border-rose-300' };
+                    col = p[timer.color] || col;
+                } else if (relTime) {
+                    col = relTime.isFuture ? 'bg-orange-100 border-orange-300' : 'bg-indigo-100 border-indigo-300';
+                }
                 const card = document.createElement('div'); card.className = `rounded-2xl shadow-md border overflow-hidden mb-4 transition-all ${col} ${isAlerting ? 'ring-2 ring-red-500' : ''}`;
                 let timeline = '';
                 if (timer.isExpanded && timer.logs.length > 0) {
                     timeline = `<div class="px-6 pb-6 pt-2 space-y-6 relative"><div class="timeline-line"></div>${timer.logs.map((log, idx) => {
                         const rel = formatRelativeTime(log.timestamp), interval = idx < timer.logs.length - 1 ? calculateInterval(log.timestamp, timer.logs[idx+1].timestamp) : null;
-                        return `<div class="relative pl-8 group"><div class="timeline-dot"></div><div class="flex justify-between items-start"><div class="flex-1" onclick="event.stopPropagation(); openModal('log', '${timer.id}', ${log.id})"><div class="flex items-center gap-2 mb-1"><span class="text-[10px] font-black px-2 py-0.5 rounded shadow-sm ${rel.isFuture ? 'bg-orange-600' : 'bg-indigo-800'} text-white">${rel.actionLabel} (${rel.text})</span><span class="text-[10px] text-slate-600 font-bold">${new Date(log.timestamp).toLocaleDateString()}</span></div>${interval ? `<div class="text-[10px] text-white font-black bg-slate-700 px-1.5 py-0.5 rounded inline-block">${interval}</div>` : ''}${log.memo ? `<p class="text-[11px] text-slate-700 mt-1 bg-white/60 p-2 rounded-lg leading-relaxed shadow-sm">${log.memo.replace(/\n/g, '<br>')}</p>` : ''}${log.image ? `<img src="${log.image}" onclick="event.stopPropagation(); zoomImage('${log.image}')" class="mt-2 w-24 h-24 object-cover rounded-lg border-2 border-white shadow-md hover:scale-105 transition cursor-zoom-in">` : ''}</div><button onclick="event.stopPropagation(); deleteLog('${timer.id}', ${log.id})" class="p-2 text-red-500 bg-white hover:bg-red-600 hover:text-white rounded-lg transition-all ml-2 shadow-sm border border-red-200"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button></div></div>`;
+                        return `<div class="relative pl-8 group"><div class="timeline-dot"></div><div class="flex justify-between items-start"><div class="flex-1" onclick="event.stopPropagation(); openModal('log', '${timer.id}', ${log.id})"><div class="flex items-center gap-2 mb-1"><span class="text-[10px] font-black px-2 py-0.5 rounded shadow-sm ${rel.isFuture ? 'bg-orange-600' : 'bg-indigo-800'} text-white">${rel.actionLabel} (${rel.text})</span><span class="text-[10px] text-slate-600 font-bold">${new Date(log.timestamp).toLocaleDateString()}</span></div>${interval ? `<div class="text-[10px] text-white font-black bg-slate-700 px-1.5 py-0.5 rounded inline-block">${interval}</div>` : ''}${log.memo ? `<p class="text-[11px] text-slate-700 mt-1 bg-white/60 p-2 rounded-lg leading-relaxed shadow-sm">${log.memo.replace(/\n/g, '<br>')}</p>` : ''}${log.image ? `<img src="${log.image}" onclick="event.stopPropagation(); zoomImage('${log.image}')" class="mt-2 w-24 h-24 object-cover rounded-lg border-2 border-white shadow-md hover:scale-105 transition cursor-zoom-in">` : ''}</div><button onclick="event.stopPropagation(); deleteLog('${timer.id}', ${log.id})" class="p-2 text-red-500 bg-white hover:bg-red-600 hover:text-white rounded-lg shadow-sm border border-red-200 ml-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button></div></div>`;
                     }).join('')}</div>`;
                 }
                 const badgeClass = relTime ? (isAlerting ? 'bg-red-600 text-white animate-pulse' : (relTime.isFuture ? 'bg-orange-600 text-white' : 'bg-indigo-800 text-white')) : '';
-                card.innerHTML = `<div class="p-5 flex justify-between items-start cursor-pointer hover:bg-white/20 transition" onclick="toggleExpand('${timer.id}')"><div class="flex-1"><div class="flex items-center gap-2 mb-2"><span class="text-[9px] font-black uppercase px-2 py-0.5 bg-white/80 text-slate-600 rounded border border-slate-300 shadow-sm">${timer.category}</span>${relTime ? `<span class="text-[10px] font-black px-2 py-0.5 rounded shadow-md ${badgeClass} mono">${relTime.actionLabel} (${relTime.text})</span>` : ''}</div><div class="flex items-center gap-2"><h2 class="text-lg font-bold text-slate-800 tracking-tight">${timer.title} <span class="text-sm font-normal text-slate-400 ml-1">(${timer.logs.length}件)</span></h2><button onclick="event.stopPropagation(); openModal('timer', '${timer.id}')" class="p-1.5 text-slate-500 bg-white/60 hover:text-sky-700 hover:bg-white rounded-lg transition shadow-sm border border-white/80 ml-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button></div></div><div class="flex flex-col items-end gap-3" onclick="event.stopPropagation()"><button onclick="deleteTimer('${timer.id}')" class="p-2 text-red-500 bg-white/80 hover:bg-red-600 hover:text-white rounded-lg shadow-sm border border-red-200 transition-all"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button><button onclick="openModal('log', '${timer.id}')" class="w-12 h-12 bg-white text-sky-600 rounded-full flex items-center justify-center hover:bg-sky-500 hover:text-white transition shadow-lg border border-sky-100"><svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M12 4v16m8-8H4"/></svg></button></div></div>${timeline}`;
+                card.innerHTML = `<div class="p-5 flex justify-between items-start cursor-pointer hover:bg-white/20 transition" onclick="toggleExpand('${timer.id}')"><div class="flex-1"><div class="flex items-center gap-2 mb-2"><span class="text-[9px] font-black uppercase px-2 py-0.5 bg-white/80 text-slate-600 rounded border border-slate-300 shadow-sm">${timer.category}</span>${relTime ? `<span class="text-[10px] font-black px-2 py-0.5 rounded shadow-md ${badgeClass} mono">${relTime.actionLabel} (${relTime.text})</span>` : ''}</div><div class="flex items-center gap-2"><h2 class="text-lg font-bold text-slate-800 tracking-tight">${timer.title} <span class="text-sm font-normal text-slate-400 ml-1">(${timer.logs.length}件)</span></h2><button onclick="event.stopPropagation(); openModal('timer', '${timer.id}')" class="p-1.5 text-slate-500 bg-white/60 hover:text-sky-700 hover:bg-white rounded-lg transition shadow-sm border border-white/80 ml-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button></div></div><div class="flex flex-col items-end gap-3" onclick="event.stopPropagation()"><button onclick="deleteTimer('${timer.id}')" class="p-2 text-red-500 bg-white/80 hover:bg-red-600 hover:text-white rounded-lg shadow-sm border border-red-200 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button><button onclick="openModal('log', '${timer.id}')" class="w-12 h-12 bg-white text-sky-600 rounded-full flex items-center justify-center hover:bg-sky-500 hover:text-white transition shadow-lg border border-sky-100"><svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M12 4v16m8-8H4"/></svg></button></div></div>${timeline}`;
                 container.appendChild(card);
             });
         }
-        setInterval(() => render(), 60000);
+        setInterval(() => render(), 1000); 
     </script>
 </body>
 </html>
