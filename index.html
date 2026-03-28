@@ -176,10 +176,10 @@
                     <div class="flex gap-2 items-center font-black font-black font-black font-black font-black"><input type="date" id="newLogDate" class="flex-1 border-b-2 border-slate-100 py-1 outline-none text-sm font-bold font-black font-black font-black"><button type="button" class="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-black shadow-sm active:scale-95 transition font-black font-black font-black font-black font-black" onclick="document.activeElement.blur()">決定</button></div>
                 </div>
                 <div class="grid grid-cols-2 gap-2 mt-1 font-black font-black font-black font-black">
-                    <label class="flex flex-col items-center justify-center gap-1 py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 cursor-pointer hover:bg-slate-50 active:scale-95 transition font-black font-black font-black font-black"><svg class="w-6 h-6 text-sky-500 font-black font-black font-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span class="text-[10px] font-bold uppercase font-black font-black font-black font-black font-black">撮影</span><input type="file" class="hidden font-black font-black font-black" accept="image/*" capture="environment" onchange="handlePhotoSelect(event)"></label>
-                    <label class="flex flex-col items-center justify-center gap-1 py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 cursor-pointer hover:bg-slate-50 active:scale-95 transition font-black font-black font-black font-black font-black"><svg class="w-6 h-6 text-indigo-500 font-black font-black font-black font-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span class="text-[10px] font-bold uppercase font-black font-black font-black font-black font-black">選択</span><input type="file" class="hidden font-black font-black font-black" accept="image/*" onchange="handlePhotoSelect(event)"></label>
+                    <label class="flex flex-col items-center justify-center gap-1 py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 cursor-pointer hover:bg-slate-50 active:scale-95 transition font-black font-black font-black font-black"><svg class="w-6 h-6 text-sky-500 font-black font-black font-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span class="text-[10px] font-bold uppercase font-black font-black font-black font-black font-black">撮影</span><input type="file" class="hidden font-black font-black font-black" accept="image/*" capture="environment" onchange="handlePhotoSelect(event)" multiple></label>
+                    <label class="flex flex-col items-center justify-center gap-1 py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 cursor-pointer hover:bg-slate-50 active:scale-95 transition font-black font-black font-black font-black font-black"><svg class="w-6 h-6 text-indigo-500 font-black font-black font-black font-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span class="text-[10px] font-bold uppercase font-black font-black font-black font-black font-black">選択</span><input type="file" class="hidden font-black font-black font-black" accept="image/*" onchange="handlePhotoSelect(event)" multiple></label>
                 </div>
-                <div id="photoPreviewContainer" class="hidden relative font-black font-black font-black font-black font-black font-black"><img id="photoPreview" class="w-full h-32 object-cover rounded-lg border shadow-inner font-black font-black font-black"><button onclick="removeSelectedPhoto()" class="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 font-black font-black font-black font-black"><svg class="w-4 h-4 font-black font-black font-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button></div>
+                <div id="photoPreviewContainer" class="hidden flex flex-wrap gap-2 relative font-black font-black font-black font-black font-black font-black"></div>
                 <textarea id="newLogMemo" class="w-full border rounded-lg p-2 text-sm h-24 resize-none border-slate-200 outline-none font-medium focus:ring-2 focus:ring-sky-100 font-black font-black font-black font-black" placeholder="記録内容を入力..."></textarea>
                 <div class="flex gap-2 pt-2 font-black font-black font-black font-black font-black font-black"><button onclick="closeModal('log')" class="flex-1 py-3 text-slate-500 font-bold font-black font-black font-black font-black font-black">中止</button><button id="logSubmitBtn" onclick="addLog()" class="flex-1 py-3 bg-sky-50 text-sky-600 font-bold rounded-xl border border-sky-100 shadow-sm active:scale-95 transition font-black font-black font-black font-black font-black font-black">確定</button></div>
             </div>
@@ -200,7 +200,7 @@
         const currentAppId = typeof __app_id !== 'undefined' ? __app_id : 'since-timer-cloud';
 
         let data = []; let user = null; let selectedCategory = 'すべて'; let dashboardTab = 'day'; let searchQuery = '';
-        let selectedIds = new Set(); let currentSelectedPhotoBase64 = null; let currentSelectedColor = 'default'; let currentEditingTimerId = null; let currentEditingLogId = null;
+        let selectedIds = new Set(); let currentSelectedPhotosBase64 = []; let currentSelectedColor = 'default'; let currentEditingTimerId = null; let currentEditingLogId = null;
         let lifePlan = { birthDate: "1967-12-08", expectedAge: 90, goals: [] };
 
         onAuthStateChanged(auth, async (u) => {
@@ -237,7 +237,6 @@
             return colors[Math.abs(hash) % colors.length];
         }
 
-        // 修正：○年○ヶ月○週○日の厳密な階層計算
         function calculateDetailedDiff(msDiff, referenceTime = Date.now()) {
             const totalDays = Math.floor(Math.abs(msDiff) / 86400000);
             const years = Math.floor(totalDays / 365);
@@ -327,14 +326,59 @@
         window.toggleExpand = async (id) => { if (!user) return; const timer = data.find(t => t.id === id.toString()); if (!timer) return; await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id.toString()), { isExpanded: !timer.isExpanded }); };
         window.setAllExpand = async (expanded) => { if (!user) return; const filtered = selectedCategory === 'すべて' ? data : data.filter(t => t.category === selectedCategory); const updates = filtered.map(t => updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', t.id), { isExpanded: expanded })); await Promise.all(updates); };
         
-        window.handlePhotoSelect = (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (ev) => { const img = new Image(); img.onload = () => { const canvas = document.createElement('canvas'); const MAX = 800; let w = img.width, h = img.height; if (w > MAX) { h *= MAX / w; w = MAX; } canvas.width = w; canvas.height = h; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, w, h); currentSelectedPhotoBase64 = canvas.toDataURL('image/jpeg', 0.7); document.getElementById('photoPreview').src = currentSelectedPhotoBase64; document.getElementById('photoPreviewContainer').classList.remove('hidden'); }; img.src = ev.target.result; }; reader.readAsDataURL(file); };
-        window.removeSelectedPhoto = () => { currentSelectedPhotoBase64 = null; document.getElementById('photoPreview').src = ""; document.getElementById('photoPreviewContainer').classList.add('hidden'); };
+        window.handlePhotoSelect = (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX = 800;
+                        let w = img.width, h = img.height;
+                        if (w > MAX) { h *= MAX / w; w = MAX; }
+                        canvas.width = w; canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+                        const b64 = canvas.toDataURL('image/jpeg', 0.7);
+                        currentSelectedPhotosBase64.push(b64);
+                        updatePhotoPreviews();
+                    };
+                    img.src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+            e.target.value = '';
+        };
+        window.updatePhotoPreviews = () => {
+            const container = document.getElementById('photoPreviewContainer');
+            if (currentSelectedPhotosBase64.length === 0) {
+                container.classList.add('hidden');
+                container.innerHTML = '';
+                return;
+            }
+            container.classList.remove('hidden');
+            container.innerHTML = currentSelectedPhotosBase64.map((img, idx) => `
+                <div class="relative w-20 h-20 mb-2">
+                    <img src="${img}" class="w-full h-full object-cover rounded-lg border shadow-inner">
+                    <button onclick="removeSelectedPhoto(${idx})" class="absolute -top-1 -right-1 bg-black/50 text-white rounded-full p-0.5"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+                </div>
+            `).join('');
+        };
+        window.removeSelectedPhoto = (idx) => {
+            if (idx === undefined) {
+                currentSelectedPhotosBase64 = [];
+            } else {
+                currentSelectedPhotosBase64.splice(idx, 1);
+            }
+            updatePhotoPreviews();
+        };
         document.querySelectorAll('.color-dot').forEach(dot => { dot.onclick = () => { document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active')); dot.classList.add('active'); currentSelectedColor = dot.dataset.color; }; });
 
         window.importJSON = async (e) => { if (!user) return; const f = e.target.files[0]; if (!f || !confirm("既存データに上書き統合されます。")) return; const text = await f.text(); try { const imported = JSON.parse(text); if (Array.isArray(imported)) { for (const t of imported) await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', (t.id || Date.now()).toString()), t); alert('完了'); } } catch (err) { alert('不備'); } };
         window.exportJSON = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })); a.download = `timer_full_backup.json`; a.click(); };
 
-        // 修正：削除ロジックの復元と安全性確保
         window.deleteTimer = (id) => {
             const m = document.getElementById('deleteModal');
             m.style.display = 'flex';
@@ -372,7 +416,10 @@
                     const t = data.find(x => x.id === id.toString()), l = t.logs.find(x => x.id === logId); 
                     document.getElementById('newLogDate').value = new Date(l.timestamp).toISOString().split('T')[0]; 
                     document.getElementById('newLogMemo').value = l.memo; 
-                    if (l.image) { currentSelectedPhotoBase64 = l.image; document.getElementById('photoPreview').src = l.image; document.getElementById('photoPreviewContainer').classList.remove('hidden'); } 
+                    if (l.image) { 
+                        currentSelectedPhotosBase64 = Array.isArray(l.image) ? [...l.image] : [l.image]; 
+                        updatePhotoPreviews(); 
+                    } 
                 } 
             }
             if (type === 'settings') { 
@@ -428,7 +475,7 @@
 
         window.createTimer = async () => { if (!user) return; const title = document.getElementById('newTimerTitle').value.trim(); if (!title) return; const nid = Date.now().toString(), nt = { id: nid, title, category: document.getElementById('newTimerCategory').value.trim() || '未分類', color: currentSelectedColor, alertDays: parseInt(document.getElementById('newTimerAlertDays').value) || 0, isExpanded: false, logs: [{ id: Date.now()+1, timestamp: new Date(document.getElementById('newTimerInitialDate').value).getTime(), memo: document.getElementById('newTimerInitialMemo').value.trim() }] }; await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', nid), nt); closeModal('timer'); };
         window.updateTimer = async () => { if (!user) return; await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', currentEditingTimerId.toString()), { title: document.getElementById('newTimerTitle').value.trim(), category: document.getElementById('newTimerCategory').value.trim() || '未分類', color: currentSelectedColor, alertDays: parseInt(document.getElementById('newTimerAlertDays').value) || 0 }); closeModal('timer'); };
-        window.addLog = async () => { if (!user) return; const t = data.find(x => x.id === currentEditingTimerId.toString()); const newLog = { id: currentEditingLogId || Date.now(), timestamp: new Date(document.getElementById('newLogDate').value).getTime(), memo: document.getElementById('newLogMemo').value.trim(), image: currentSelectedPhotoBase64 }; const logs = currentEditingLogId ? t.logs.map(l => l.id === currentEditingLogId ? newLog : l) : [...t.logs, newLog]; logs.sort((a,b) => b.timestamp - a.timestamp); await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', t.id), { logs, isExpanded: true }); closeModal('log'); };
+        window.addLog = async () => { if (!user) return; const t = data.find(x => x.id === currentEditingTimerId.toString()); const newLog = { id: currentEditingLogId || Date.now(), timestamp: new Date(document.getElementById('newLogDate').value).getTime(), memo: document.getElementById('newLogMemo').value.trim(), image: currentSelectedPhotosBase64 }; const logs = currentEditingLogId ? t.logs.map(l => l.id === currentEditingLogId ? newLog : l) : [...t.logs, newLog]; logs.sort((a,b) => b.timestamp - a.timestamp); await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', t.id), { logs, isExpanded: true }); closeModal('log'); };
 
         function render() {
             const nowTime = Date.now();
@@ -443,7 +490,6 @@
                 percent = Math.floor(((86400 - nowSec) / 86400) * 100); 
                 const passedPercent = 100 - percent;
                 title = "今日"; 
-                // 修正：フォントサイズの適正化
                 mainVal = `残り ${Math.floor((86400-nowSec)/3600)}時 ${Math.floor(((86400-nowSec)%3600)/60)}分`; 
                 subVal = `消費 ${Math.floor(nowSec/3600)}時 ${Math.floor((nowSec%3600)/60)}分 (${passedPercent}%経過)`;
                 colorClass = "stroke-sky-400"; 
@@ -548,7 +594,13 @@
                         const intervalMs = i < t.logs.length - 1 ? (dStart.getTime() - (new Date(t.logs[i+1].timestamp).setHours(0,0,0,0))) : null; 
                         const intervalData = intervalMs !== null ? calculateDetailedDiff(intervalMs) : null;
                         
-                        return `<div class="relative pl-8 group font-black font-black font-black"><div class="timeline-dot font-black"></div><div class="flex justify-between items-start pt-1 pb-1 font-black font-black font-black"><div class="flex-1 cursor-pointer hover:bg-black/5 p-1 rounded-lg transition font-black font-black font-black font-black" onclick="openModal('log', '${t.id}', ${l.id})"><div class="flex items-center justify-between mb-0.5 font-black font-black font-black font-black font-black"><div class="flex items-center gap-2 font-black font-black font-black"><span class="text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm text-white ${lRel.isFuture ? 'bg-orange-600' : 'bg-indigo-800'} font-black font-black font-black font-black">${lRel.text}</span><span class="text-[9px] text-slate-500 font-bold font-black font-black font-black font-black font-black">${new Date(l.timestamp).toLocaleDateString()}</span></div><svg class="w-3 h-3 text-slate-300 font-black font-black font-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></div>${l.memo ? `<p class="text-[10px] text-slate-700 mt-1 bg-white/40 p-1.5 rounded leading-relaxed shadow-sm break-words whitespace-pre-wrap font-black font-black font-black font-black font-black">${l.memo}</p>` : `<p class="text-[9px] text-slate-400 italic mt-1 font-black font-black font-black font-black font-black font-black">メモを追加...</p>`}${l.image ? `<img id="img_${l.id}" src="${l.image}" onclick="event.stopPropagation(); zoomImage('${l.image}')" class="mt-1.5 w-20 h-20 object-cover rounded shadow-sm hover:scale-105 transition cursor-zoom-in border-2 border-white font-black font-black">` : ''}</div><button onclick="deleteLog('${t.id}', ${l.id})" class="p-1.5 text-slate-400 hover:text-rose-500 transition-colors font-black"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button></div>${intervalData ? `<div class="flex items-center mt-1 mb-2 font-black font-black font-black font-black font-black font-black"><div class="bg-white/95 border border-slate-200 px-1.5 py-0.5 rounded-full shadow-sm ml-[-4px] z-20 font-black font-black font-black font-black font-black font-black font-black"><span class="text-[8px] font-black text-sky-600 whitespace-nowrap italic font-black font-black font-black font-black font-black">間隔: ${intervalData.breakdown}(${intervalData.totalDays}日)</span></div></div>` : ''}</div>`;
+                        let imagesHTML = '';
+                        if (l.image) {
+                            const imgs = Array.isArray(l.image) ? l.image : [l.image];
+                            imagesHTML = `<div class="flex flex-wrap gap-2 mt-1.5">` + imgs.map(img => `<img src="${img}" onclick="event.stopPropagation(); zoomImage('${img}')" class="w-20 h-20 object-cover rounded shadow-sm hover:scale-105 transition cursor-zoom-in border-2 border-white font-black font-black">`).join('') + `</div>`;
+                        }
+
+                        return `<div class="relative pl-8 group font-black font-black font-black"><div class="timeline-dot font-black"></div><div class="flex justify-between items-start pt-1 pb-1 font-black font-black font-black"><div class="flex-1 cursor-pointer hover:bg-black/5 p-1 rounded-lg transition font-black font-black font-black font-black" onclick="openModal('log', '${t.id}', ${l.id})"><div class="flex items-center justify-between mb-0.5 font-black font-black font-black font-black font-black"><div class="flex items-center gap-2 font-black font-black font-black"><span class="text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm text-white ${lRel.isFuture ? 'bg-orange-600' : 'bg-indigo-800'} font-black font-black font-black font-black">${lRel.text}</span><span class="text-[9px] text-slate-500 font-bold font-black font-black font-black font-black font-black">${new Date(l.timestamp).toLocaleDateString()}</span></div><svg class="w-3 h-3 text-slate-300 font-black font-black font-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></div>${l.memo ? `<p class="text-[10px] text-slate-700 mt-1 bg-white/40 p-1.5 rounded leading-relaxed shadow-sm break-words whitespace-pre-wrap font-black font-black font-black font-black font-black">${l.memo}</p>` : `<p class="text-[9px] text-slate-400 italic mt-1 font-black font-black font-black font-black font-black font-black">メモを追加...</p>`}${imagesHTML}</div><button onclick="deleteLog('${t.id}', ${l.id})" class="p-1.5 text-slate-400 hover:text-rose-500 transition-colors font-black"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button></div>${intervalData ? `<div class="flex items-center mt-1 mb-2 font-black font-black font-black font-black font-black font-black"><div class="bg-white/95 border border-slate-200 px-1.5 py-0.5 rounded-full shadow-sm ml-[-4px] z-20 font-black font-black font-black font-black font-black font-black font-black"><span class="text-[8px] font-black text-sky-600 whitespace-nowrap italic font-black font-black font-black font-black font-black">間隔: ${intervalData.breakdown}(${intervalData.totalDays}日)</span></div></div>` : ''}</div>`;
                     }).join('')}</div>`;
                 }
 
