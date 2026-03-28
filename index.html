@@ -444,7 +444,6 @@
                 const g = (lifePlan.goals || []).find(x => x.id === dashboardTab); 
                 if (g) { 
                     isGoal = true; title = g.title;
-                    // 数値達成率の計算
                     let numericalPercent = 0;
                     const range = g.target - g.startValue;
                     if (range !== 0) {
@@ -453,7 +452,6 @@
                     }
                     numericalPercent = Math.min(100, Math.max(0, numericalPercent));
                     
-                    // 時間経過率の計算
                     if (g.startDate && g.endDate) {
                         const start = new Date(g.startDate), end = new Date(g.endDate);
                         const totalDays = Math.floor((end - start) / 86400000);
@@ -461,24 +459,41 @@
                         timePercent = Math.min(100, Math.max(0, Math.floor((passedDays / totalDays) * 100)));
                         const remDays = Math.max(0, Math.floor((end - nowTime) / 86400000));
                         
-                        // 修正：期間が設定されている場合は「時間経過率」をメインの円グラフ（％）に採用
                         percent = timePercent;
-                        mainVal = `経過 ${timePercent}% (あと${remDays}日)`;
-                        subVal = `数値：${numericalPercent}%達成`;
+                        mainVal = `経過 ${timePercent}% (あと ${remDays}日)`;
+                        subVal = `実績：${g.current.toLocaleString()}${g.unit} / 目標：${g.target.toLocaleString()}${g.unit} (${numericalPercent}%達成)`;
                     } else {
-                        // 期間設定がない場合は従来通り数値をメインに
                         percent = numericalPercent;
                         mainVal = `数値：${percent}%達成`;
+                        subVal = `現在：${g.current.toLocaleString()}${g.unit} / 目標：${g.target.toLocaleString()}${g.unit}`;
                     }
                     
                     const diff = Math.abs(g.target - g.current);
-                    subVal += diff === 0 ? ` | 目標達成！` : ` | あと ${diff.toLocaleString()}${g.unit}`;
+                    if (diff !== 0) subVal += ` | あと ${diff.toLocaleString()}${g.unit}`;
+                    else if (g.current !== 0) subVal += ` | 目標達成！`;
+                    
                     colorClass = (numericalPercent >= timePercent) ? "stroke-emerald-500" : "stroke-rose-500"; 
                 } 
             }
             
             const r = 45, circ = 2 * Math.PI * r, offset = circ - (percent / 100) * circ, timeOffset = timePercent >= 0 ? circ - (timePercent / 100) * circ : 0;
-            content.innerHTML = `<div class="relative inline-block font-black font-black font-black"><svg width="110" height="110" class="circle-progress font-black font-black"><circle cx="55" cy="55" r="${r}" stroke="#1e293b" stroke-width="12" fill="transparent" />${timePercent >= 0 && !isGoal ? `<circle cx="55" cy="55" r="${r}" stroke="#334155" stroke-width="4" stroke-dasharray="${circ}" stroke-dashoffset="${timeOffset}" fill="transparent" />` : ''}<circle cx="55" cy="55" r="${r}" class="progress-indicator ${colorClass}" stroke-width="12" stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round" fill="transparent" /></svg><div class="absolute inset-0 flex flex-col items-center justify-center text-white font-black"><span class="text-2xl font-black font-black font-black">${percent}<span class="text-xs">%</span></span><span class="text-[8px] text-slate-400 uppercase font-black tracking-widest font-black">${isGoal && timePercent >= 0 ? '経過' : (isGoal ? '達成' : '残り')}</span></div></div><div class="mt-4 text-center font-black font-black"><p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 font-black font-black font-black">${title}</p><h2 class="text-2xl font-black tracking-tighter font-black font-black font-black font-black">${mainVal}</h2><p class="text-[9px] font-bold text-slate-500 mt-1 font-black font-black font-black">${subVal}</p></div>`;
+            content.innerHTML = `
+                <div class="relative inline-block font-black">
+                    <svg width="110" height="110" class="circle-progress">
+                        <circle cx="55" cy="55" r="${r}" stroke="#1e293b" stroke-width="12" fill="transparent" />
+                        ${timePercent >= 0 && !isGoal ? `<circle cx="55" cy="55" r="${r}" stroke="#334155" stroke-width="4" stroke-dasharray="${circ}" stroke-dashoffset="${timeOffset}" fill="transparent" />` : ''}
+                        <circle cx="55" cy="55" r="${r}" class="progress-indicator ${colorClass}" stroke-width="12" stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round" fill="transparent" />
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center text-white font-black">
+                        <span class="text-3xl font-black">${percent}<span class="text-xs">%</span></span>
+                        <span class="text-[10px] text-slate-400 uppercase font-black tracking-widest">${isGoal && timePercent >= 0 ? '時間経過' : (isGoal ? '数値達成' : '残り')}</span>
+                    </div>
+                </div>
+                <div class="mt-6 text-center font-black">
+                    <p class="text-sm font-black text-slate-500 uppercase tracking-widest mb-2">${title}</p>
+                    <h2 class="text-3xl font-black tracking-tighter mb-2">${mainVal}</h2>
+                    <p class="text-base font-bold text-slate-400 bg-white/5 py-2 px-4 rounded-xl inline-block border border-white/10">${subVal}</p>
+                </div>`;
 
             const categories = ['すべて', ...new Set(data.map(t => t.category))].sort();
             document.getElementById('categoryTabs').innerHTML = categories.map(cat => `<button onclick="filterCategory('${cat}')" class="px-3 py-1.5 rounded-full text-[10px] font-black whitespace-nowrap transition ${selectedCategory === cat ? 'bg-slate-800 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200'} font-black font-black font-black">${cat}</button>`).join('');
