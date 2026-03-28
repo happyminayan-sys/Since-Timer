@@ -239,21 +239,17 @@
 
         function calculateDetailedDiff(msDiff, referenceTime = Date.now()) {
             const totalDays = Math.floor(Math.abs(msDiff) / 86400000);
-            
-            // 修正：年・ヶ月・週・日の階層計算
             const years = Math.floor(totalDays / 365);
             const remAfterYears = totalDays % 365;
             const months = Math.floor(remAfterYears / 30);
             const remAfterMonths = remAfterYears % 30;
             const weeks = Math.floor(remAfterMonths / 7);
             const days = remAfterMonths % 7;
-
             let breakdown = "";
             if (years > 0) breakdown += `${years}年`;
             if (months > 0) breakdown += `${months}ヶ月`;
             if (weeks > 0) breakdown += `${weeks}週`;
             if (days > 0 || breakdown === "") breakdown += `${days}日`;
-            
             return { breakdown, totalDays };
         }
 
@@ -334,6 +330,26 @@
 
         window.importJSON = async (e) => { if (!user) return; const f = e.target.files[0]; if (!f || !confirm("既存データに上書き統合されます。")) return; const text = await f.text(); try { const imported = JSON.parse(text); if (Array.isArray(imported)) { for (const t of imported) await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', (t.id || Date.now()).toString()), t); alert('完了'); } } catch (err) { alert('不備'); } };
         window.exportJSON = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })); a.download = `timer_full_backup.json`; a.click(); };
+
+        // 削除機能の復元
+        window.deleteTimer = (id) => {
+            const m = document.getElementById('deleteModal');
+            m.style.display = 'flex';
+            document.getElementById('deleteExecuteBtn').onclick = async () => {
+                await deleteDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id.toString()));
+                closeModal('delete');
+            };
+        };
+        window.deleteLog = (timerId, logId) => {
+            const m = document.getElementById('deleteModal');
+            m.style.display = 'flex';
+            document.getElementById('deleteExecuteBtn').onclick = async () => {
+                const t = data.find(x => x.id === timerId.toString());
+                const logs = t.logs.filter(l => l.id !== logId);
+                await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', t.id), { logs });
+                closeModal('delete');
+            };
+        };
 
         window.openModal = (type, id = null, logId = null) => {
             const m = document.getElementById(`${type}Modal`); if (!m) return; m.style.display = 'flex'; currentEditingTimerId = id; currentEditingLogId = logId;
@@ -424,7 +440,6 @@
                 percent = Math.floor(((86400 - nowSec) / 86400) * 100); 
                 const passedPercent = 100 - percent;
                 title = "今日"; 
-                // 修正：フォントサイズの適正化
                 mainVal = `残り ${Math.floor((86400-nowSec)/3600)}時 ${Math.floor(((86400-nowSec)%3600)/60)}分`; 
                 subVal = `消費 ${Math.floor(nowSec/3600)}時 ${Math.floor((nowSec%3600)/60)}分 (${passedPercent}%経過)`;
                 colorClass = "stroke-sky-400"; 
