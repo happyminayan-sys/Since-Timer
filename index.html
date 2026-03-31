@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timeline Context Manager Cloud Pro (Final Stable)</title>
+    <title>Timeline Context Manager Cloud Pro (High-Contrast Refined)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap');
@@ -13,6 +13,7 @@
         .timeline-dot { position: absolute; left: 0; top: 8px; width: 16px; height: 16px; background-color: #0ea5e9; border: 3px solid #fff; border-radius: 50%; z-index: 10; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .img-preview { max-height: 120px; object-fit: cover; border-radius: 8px; }
         .color-dot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
         .color-dot.active { border-color: #334155; transform: scale(1.1); box-shadow: 0 0 0 2px #fff; }
         .circle-progress { transform: rotate(-90deg); transform-origin: 50% 50%; }
@@ -22,116 +23,126 @@
 <body class="text-slate-900 pb-24">
     <div id="loginOverlay" class="fixed inset-0 bg-white z-[200] flex items-center justify-center p-6 hidden">
         <div class="max-w-sm w-full text-center">
-            <h1 class="text-3xl font-black tracking-tighter text-slate-800 mb-2">Timeline Since</h1>
+            <h1 class="text-3xl font-black tracking-tighter text-slate-800 mb-2 font-black">Timeline Since</h1>
             <p class="text-sm text-slate-500 mb-8 font-bold">Googleアカウントでログインしてください。</p>
-            <button onclick="signInWithGoogle()" class="w-full bg-white border-2 border-slate-200 text-slate-700 py-4 rounded-2xl font-bold shadow-sm hover:bg-slate-50 active:scale-95 flex items-center justify-center gap-3">
+            <button onclick="signInWithGoogle()" class="w-full bg-white border-2 border-slate-200 text-slate-700 py-4 rounded-2xl font-bold shadow-sm hover:bg-slate-50 active:scale-95 flex items-center justify-center gap-3 font-black">
                 <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                 Googleで開始
             </button>
         </div>
     </div>
 
-    <div id="appRoot" class="hidden">
+    <div id="appRoot" class="hidden font-black">
         <div class="max-w-xl mx-auto px-4 py-6">
             <header class="mb-4">
                 <div class="flex justify-between items-start mb-4">
                     <div>
                         <h1 class="text-2xl font-black tracking-tighter text-slate-800">Timeline Since</h1>
-                        <p class="text-xs text-slate-500 italic" id="syncStatus">Syncing...</p>
+                        <p class="text-xs text-slate-500 font-medium italic" id="syncStatus">Syncing...</p>
                     </div>
                     <button onclick="handleLogout()" class="text-[10px] text-slate-400 hover:text-red-500 underline font-bold">ログアウト</button>
                 </div>
 
-                <div class="bg-slate-900 rounded-3xl p-6 mb-6 shadow-2xl relative border-t border-white/10 text-white">
-                    <button onclick="openModal('settings')" class="absolute top-4 right-4 text-slate-500 hover:text-white transition z-10">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    </button>
+                <div class="bg-slate-900 rounded-3xl p-6 mb-6 shadow-2xl relative border-t border-white/10 text-white font-black">
+                    <button onclick="openModal('settings')" class="absolute top-4 right-4 text-slate-500 hover:text-white transition z-10"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></button>
                     <div id="dashboardTabs" class="flex gap-4 mb-4 border-b border-white/10 pb-2 mr-8 overflow-x-auto no-scrollbar"></div>
                     <div id="dashboardContent" class="text-center py-2 flex flex-col items-center min-h-[170px] justify-center"></div>
                 </div>
 
-                <div class="flex gap-2 items-center mb-6">
-                    <button onclick="openModal('timer')" class="flex-1 bg-sky-500 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                        新規作成
-                    </button>
-                    <button onclick="exportJSON()" class="p-3 bg-slate-800 text-white rounded-xl shadow-lg hover:bg-slate-700 active:scale-95 transition-all" title="JSON保存">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                    </button>
+                <div class="flex gap-2 items-center mb-6 font-black">
+                    <button onclick="openModal('timer')" class="flex-1 bg-sky-500 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all">新規作成</button>
+                    <button onclick="exportJSON()" class="p-3 bg-slate-800 text-white rounded-xl shadow-lg active:scale-95 transition-all">JSON保存</button>
                 </div>
 
-                <div class="mb-4 relative">
-                    <input type="text" id="globalSearchInput" oninput="handleSearch(this.value)" placeholder="タイトル、カテゴリ、メモで検索..." class="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-10 text-sm outline-none focus:ring-2 focus:ring-sky-100 transition-all shadow-sm">
+                <div class="mb-4 relative font-black">
+                    <input type="text" id="globalSearchInput" oninput="handleSearch(this.value)" placeholder="タイトル、カテゴリ、メモで検索..." class="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-10 text-sm outline-none focus:ring-2 focus:ring-sky-100 transition-all font-bold shadow-sm">
                     <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </div>
 
                 <div id="categoryTabs" class="flex gap-2 overflow-x-auto no-scrollbar mb-4"></div>
             </header>
-            <div id="mainContainer" class="space-y-4"></div>
+            <div id="mainContainer" class="space-y-4 font-black"></div>
         </div>
     </div>
 
-    <div id="timerModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[100] backdrop-blur-sm">
+    <!-- Timer Modal -->
+    <div id="timerModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[100] backdrop-blur-sm font-black">
         <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
             <h3 class="text-lg font-bold mb-4 text-slate-800">タイマー設定</h3>
-            <div class="space-y-4">
-                <div><label class="text-[10px] font-black text-slate-400 uppercase tracking-wider">カテゴリ</label><input type="text" id="newTimerCategory" list="existingCategories" class="w-full border-b-2 border-slate-100 py-1 outline-none text-sm font-bold"><datalist id="existingCategories"></datalist></div>
-                <div><label class="text-[10px] font-black text-slate-400 uppercase tracking-wider">タイトル</label><input type="text" id="newTimerTitle" class="w-full border-b-2 border-slate-100 py-1 outline-none text-sm font-bold"></div>
+            <div class="space-y-4 font-black">
+                <div><label class="text-[10px] font-black text-slate-400 uppercase">カテゴリ</label><input type="text" id="newTimerCategory" list="existingCategories" class="w-full border-b-2 border-slate-100 py-1 outline-none text-sm font-bold"><datalist id="existingCategories"></datalist></div>
+                <div><label class="text-[10px] font-black text-slate-400 uppercase">タイトル</label><input type="text" id="newTimerTitle" class="w-full border-b-2 border-slate-100 py-1 outline-none text-sm font-bold"></div>
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase">背景色</label>
+                        <div class="flex gap-2.5 mt-2 flex-wrap" id="colorPicker">
+                            <div class="color-dot active bg-white border-slate-400" data-color="default"></div>
+                            <div class="color-dot bg-white border-slate-200 shadow-inner" data-color="white"></div>
+                            <div class="color-dot bg-indigo-200" data-color="indigo"></div>
+                            <div class="color-dot bg-orange-200" data-color="orange"></div>
+                            <div class="color-dot bg-emerald-200" data-color="emerald"></div>
+                            <div class="color-dot bg-rose-200" data-color="rose"></div>
+                        </div>
+                    </div>
+                    <div class="w-24">
+                        <label class="text-[10px] font-black text-slate-400 uppercase">アラート(日)</label>
+                        <input type="number" id="newTimerAlertDays" placeholder="0" class="w-full border-b-2 border-slate-100 py-1 outline-none text-sm font-bold">
+                    </div>
+                </div>
                 <div id="initialDateGroup">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider">初回日付</label>
+                    <label class="text-[10px] font-black text-slate-400 uppercase">初回日付</label>
                     <input type="date" id="newTimerInitialDate" class="w-full border-b-2 border-slate-100 py-1 outline-none text-sm font-medium">
                 </div>
-                <div class="flex gap-2 pt-2"><button onclick="closeModal('timer')" class="flex-1 py-3 text-slate-500 font-bold">中止</button><button id="timerSubmitBtn" class="flex-1 py-3 bg-slate-800 text-white rounded-xl font-bold shadow-lg">保存</button></div>
+                <div class="flex gap-2 pt-2 font-black"><button onclick="closeModal('timer')" class="flex-1 py-3 text-slate-500 font-bold">中止</button><button id="timerSubmitBtn" class="flex-1 py-3 bg-slate-800 text-white rounded-xl font-bold shadow-lg">保存</button></div>
             </div>
         </div>
     </div>
 
-    <div id="logModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[100] backdrop-blur-sm">
+    <!-- Log Modal -->
+    <div id="logModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[100] backdrop-blur-sm font-black">
         <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
             <h3 class="text-lg font-bold mb-4 text-slate-800">履歴追加・編集</h3>
             <div class="space-y-4">
-                <div><label class="text-[10px] font-black text-slate-400 uppercase tracking-wider">日付</label><input type="date" id="newLogDate" class="w-full border-b-2 border-slate-100 py-1 outline-none text-sm font-bold"></div>
+                <div><label class="text-[10px] font-black text-slate-400 uppercase">日付</label><input type="date" id="newLogDate" class="w-full border-b-2 border-slate-100 py-1 outline-none text-sm font-bold"></div>
                 <div class="grid grid-cols-2 gap-2">
-                    <label class="flex flex-col items-center justify-center gap-1 py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 cursor-pointer hover:bg-slate-50 transition"><span class="text-[10px] font-bold">撮影/選択</span><input type="file" class="hidden" accept="image/*" onchange="handlePhotoSelect(event)" multiple></label>
+                    <label class="flex flex-col items-center justify-center gap-1 py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 cursor-pointer hover:bg-slate-50 transition"><span class="text-[10px] font-bold">撮影</span><input type="file" class="hidden" accept="image/*" capture="environment" onchange="handlePhotoSelect(event)" multiple></label>
+                    <label class="flex flex-col items-center justify-center gap-1 py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 cursor-pointer hover:bg-slate-50 transition"><span class="text-[10px] font-bold">選択</span><input type="file" class="hidden" accept="image/*" onchange="handlePhotoSelect(event)" multiple></label>
                 </div>
                 <div id="photoPreviewContainer" class="hidden flex flex-wrap gap-2"></div>
                 <textarea id="newLogMemo" class="w-full border rounded-lg p-2 text-sm h-24 resize-none border-slate-200 outline-none font-medium focus:ring-2 focus:ring-sky-100" placeholder="記録内容を入力..."></textarea>
-                <div class="flex gap-2 pt-2"><button onclick="closeModal('log')" class="flex-1 py-3 text-slate-500 font-bold">中止</button><button onclick="addLog()" class="flex-1 py-3 bg-sky-50 text-sky-600 font-bold rounded-xl border border-sky-100 shadow-sm active:scale-95 transition">確定</button></div>
+                <div class="flex gap-2 pt-2 font-black"><button onclick="closeModal('log')" class="flex-1 py-3 text-slate-500 font-bold">中止</button><button id="logSubmitBtn" onclick="addLog()" class="flex-1 py-3 bg-sky-50 text-sky-600 font-bold rounded-xl border border-sky-100 shadow-sm active:scale-95 transition">確定</button></div>
             </div>
         </div>
     </div>
 
-    <div id="settingsModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[100] backdrop-blur-sm">
+    <div id="settingsModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[100] backdrop-blur-sm font-black">
         <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl overflow-y-auto max-h-[90vh] no-scrollbar">
             <h3 class="text-xl font-black mb-6 text-slate-800 tracking-tight">目標・ライフプラン設定</h3>
-            <div class="space-y-8">
+            <div class="space-y-8 font-black">
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">生年月日</label><input type="date" id="settingsBirthDate" class="w-full border-b-2 border-slate-100 py-1 outline-none text-sm font-bold"></div>
                     <div><label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">寿命目安</label><input type="number" id="settingsExpectedAge" class="w-full border-b-2 border-slate-100 py-1 outline-none text-sm font-bold"></div>
                 </div>
-                <div class="pt-6 border-t border-slate-100">
-                    <label class="text-xs font-black text-slate-500 uppercase flex justify-between items-center mb-4"><span>自由目標設定</span><button onclick="addNewGoalRow()" class="text-sky-500 hover:text-sky-600 font-black">+ 追加</button></label>
-                    <div id="goalRowsContainer" class="space-y-4"></div>
-                </div>
+                <div class="pt-6 border-t border-slate-100"><label class="text-xs font-black text-slate-500 uppercase flex justify-between items-center mb-4"><span>自由目標設定</span><button onclick="addNewGoalRow()" class="text-sky-500 hover:text-sky-600 font-black">+ 追加</button></label><div id="goalRowsContainer" class="space-y-4"></div></div>
                 <div class="flex gap-3 pt-4"><button onclick="closeModal('settings')" class="flex-1 py-3 text-slate-500 font-bold">閉じる</button><button onclick="saveProfileSettings()" class="flex-1 py-3 bg-amber-500 text-white rounded-2xl font-bold shadow-lg active:scale-95 transition">設定を保存</button></div>
             </div>
         </div>
     </div>
 
-    <div id="deleteModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[150] backdrop-blur-sm"><div class="bg-white rounded-2xl w-full max-w-xs p-6 shadow-2xl text-center"><h3 class="text-lg font-bold text-slate-800 mb-2">削除確認</h3><div class="flex gap-2 mt-6"><button onclick="closeModal('delete')" class="flex-1 py-3 text-slate-500 font-bold">中止</button><button id="deleteExecuteBtn" class="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold active:scale-95 transition">完全に削除</button></div></div></div>
-    <div id="imageModal" class="fixed inset-0 bg-black/90 hidden items-center justify-center p-4 z-[250]" onclick="closeModal('image')"><img id="imageModalContent" class="max-w-full max-h-full rounded-lg shadow-2xl"></div>
+    <div id="deleteModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[150] backdrop-blur-sm font-black"><div class="bg-white rounded-2xl w-full max-w-xs p-6 shadow-2xl text-center"><h3 class="text-lg font-bold text-slate-800 mb-2">削除確認</h3><div class="flex gap-2 mt-6"><button onclick="closeModal('delete')" class="flex-1 py-3 text-slate-500 font-bold">中止</button><button id="deleteExecuteBtn" class="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold active:scale-95 transition">完全に削除</button></div></div></div>
+    <div id="imageModal" class="fixed inset-0 bg-black/90 hidden items-center justify-center p-4 z-[250] font-black" onclick="closeModal('image')"><img id="imageModalContent" class="max-w-full max-h-full rounded-lg shadow-2xl"></div>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
         import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
         import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, query, getDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
-        const firebaseConfig = { apiKey: "AIzaSyC6TKgRNRFhm023uAtTnXyJXHcQtO4i4nA", authDomain: "timer-d7f73.firebaseapp.com", projectId: "timer-d7f73", storageBucket: "timer-d7f73.firebasestorage.app", appId: "1:779981072804:web:62bcfad1b1bbe392993931" };
+        const firebaseConfig = { apiKey: "AIzaSyC6TKgRNRFhm023uAtTnXyJXHcQtO4i4nA", authDomain: "timer-d7f73.firebaseapp.com", projectId: "timer-d7f73", storageBucket: "timer-d7f73.firebasestorage.app", messagingSenderId: "779981072804", appId: "1:779981072804:web:62bcfad1b1bbe392993931" };
         const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getFirestore(app);
         const provider = new GoogleAuthProvider(); const currentAppId = 'since-timer-cloud';
 
         let data = []; let user = null; let selectedCategory = 'すべて'; let dashboardTab = 'day'; let searchQuery = '';
-        let currentSelectedPhotosBase64 = []; let currentEditingTimerId = null; let currentEditingLogId = null;
+        let currentSelectedPhotosBase64 = []; let currentSelectedColor = 'default'; let currentEditingTimerId = null; let currentEditingLogId = null;
         let lifePlan = { birthDate: "1967-12-08", expectedAge: 90, goals: [] };
 
         onAuthStateChanged(auth, async (u) => {
@@ -139,7 +150,7 @@
             else { user = null; document.getElementById('appRoot').classList.add('hidden'); document.getElementById('loginOverlay').classList.remove('hidden'); }
         });
 
-        window.signInWithGoogle = async () => { try { await setPersistence(auth, browserLocalPersistence); await signInWithPopup(auth, provider); } catch (err) { alert("ログイン失敗: " + err.code); } };
+        window.signInWithGoogle = async () => { try { await setPersistence(auth, browserLocalPersistence); await signInWithPopup(auth, provider); } catch (err) { console.error(err); } };
         window.handleLogout = () => { if(confirm("ログアウトしますか？")) signOut(auth); };
 
         async function loadProfileSettings() { if (!user) return; const snap = await getDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'settings', 'config')); if (snap.exists()) lifePlan = { ...lifePlan, ...snap.data() }; }
@@ -147,24 +158,18 @@
 
         window.handleSearch = (val) => { searchQuery = val.toLowerCase(); render(); };
 
-        function getCategoryStyles(cat) {
-            const map = { '美容・健康': 'bg-rose-100 text-rose-700 border-rose-200', '資産管理': 'bg-emerald-100 text-emerald-700 border-emerald-200', '通院': 'bg-blue-100 text-blue-700 border-blue-200', '仕事': 'bg-indigo-100 text-indigo-700 border-indigo-200' };
-            if (map[cat]) return map[cat];
-            const colors = ['bg-amber-100 text-amber-700 border-amber-200', 'bg-purple-100 text-purple-700 border-purple-200', 'bg-teal-100 text-teal-700 border-teal-200'];
-            let hash = 0; for (let i = 0; i < cat.length; i++) hash = cat.charCodeAt(i) + ((hash << 5) - hash);
-            return colors[Math.abs(hash) % colors.length];
-        }
-
         function calculateDetailedDiff(msDiff) {
             const totalDays = Math.floor(Math.abs(msDiff) / 86400000);
             const years = Math.floor(totalDays / 365);
-            const months = Math.floor((totalDays % 365) / 30);
-            const weeks = Math.floor(((totalDays % 365) % 30) / 7);
-            const days = ((totalDays % 365) % 30) % 7;
+            const remAfterYears = totalDays % 365;
+            const months = Math.floor(remAfterYears / 30);
+            const remAfterMonths = remAfterYears % 30;
+            const weeks = Math.floor(remAfterMonths / 7);
+            const days = remAfterMonths % 7;
             let breakdown = "";
             if (years > 0) breakdown += `${years}年`;
-            if (months > 0 || years > 0) breakdown += `${months}ヶ月`;
-            if (weeks > 0 || months > 0 || years > 0) breakdown += `${weeks}週`;
+            if (months > 0 || (years > 0 && months === 0)) breakdown += `${months}ヶ月`;
+            if (weeks > 0 || (months > 0 && weeks === 0)) breakdown += `${weeks}週`;
             breakdown += `${days}日`;
             return { breakdown, totalDays };
         }
@@ -174,8 +179,8 @@
             const d2 = new Date(); d2.setHours(0,0,0,0);
             const diffMs = d2.getTime() - d1.getTime();
             const { breakdown, totalDays } = calculateDetailedDiff(diffMs);
-            const label = `${breakdown}(${totalDays}日)${diffMs >= 0 ? "前" : "後"}`;
-            return { text: label, isFuture: diffMs < 0 };
+            const suffix = diffMs >= 0 ? "前" : "後";
+            return { text: `${breakdown}(${totalDays}日)${suffix}`, isFuture: diffMs < 0 };
         }
 
         window.handlePhotoSelect = (e) => {
@@ -243,6 +248,7 @@
             await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', nid), { 
                 id: nid, title: document.getElementById('newTimerTitle').value.trim(), 
                 category: document.getElementById('newTimerCategory').value.trim() || '未分類', 
+                color: currentSelectedColor, alertDays: parseInt(document.getElementById('newTimerAlertDays').value) || 0,
                 logs: [{ id: Date.now()+1, timestamp: new Date(document.getElementById('newTimerInitialDate').value).getTime(), memo: "" }] 
             });
             closeModal('timer');
@@ -257,13 +263,56 @@
             closeModal('settings');
         };
 
+        window.openModal = (type, id = null, logId = null) => { 
+            const m = document.getElementById(type + 'Modal'); m.style.display = 'flex'; currentEditingTimerId = id; currentEditingLogId = logId;
+            const ds = new Date().toISOString().split('T')[0];
+            if (type === 'log') { 
+                currentSelectedPhotosBase64 = []; updatePhotoPreviews(); 
+                document.getElementById('newLogDate').value = ds; document.getElementById('newLogMemo').value = "";
+                if (logId) {
+                    const t = data.find(x => x.id === id.toString()), l = t.logs.find(x => x.id === logId);
+                    document.getElementById('newLogDate').value = new Date(l.timestamp).toISOString().split('T')[0]; document.getElementById('newLogMemo').value = l.memo;
+                    if (l.image) currentSelectedPhotosBase64 = Array.isArray(l.image) ? [...l.image] : [l.image];
+                    updatePhotoPreviews();
+                }
+            }
+            if (type === 'timer') {
+                document.getElementById('newTimerInitialDate').value = ds;
+                document.querySelectorAll('.color-dot').forEach(d => { d.classList.toggle('active', d.dataset.color === 'default'); d.onclick = () => { document.querySelectorAll('.color-dot').forEach(x => x.classList.remove('active')); d.classList.add('active'); currentSelectedColor = d.dataset.color; }; });
+                if (id) {
+                    const t = data.find(x => x.id === id.toString());
+                    document.getElementById('newTimerTitle').value = t.title; document.getElementById('newTimerCategory').value = t.category;
+                    document.getElementById('newTimerAlertDays').value = t.alertDays || 0;
+                    currentSelectedColor = t.color || 'default';
+                    document.querySelectorAll('.color-dot').forEach(d => d.classList.toggle('active', d.dataset.color === currentSelectedColor));
+                    document.getElementById('initialDateGroup').classList.add('hidden');
+                } else {
+                    document.getElementById('newTimerTitle').value = ""; document.getElementById('newTimerCategory').value = "";
+                    document.getElementById('newTimerAlertDays').value = 0; currentSelectedColor = 'default';
+                    document.getElementById('initialDateGroup').classList.remove('hidden');
+                }
+                document.getElementById('timerSubmitBtn').onclick = id ? async () => {
+                    await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id.toString()), { title: document.getElementById('newTimerTitle').value.trim(), category: document.getElementById('newTimerCategory').value.trim(), color: currentSelectedColor, alertDays: parseInt(document.getElementById('newTimerAlertDays').value) || 0 }); closeModal('timer');
+                } : createTimer;
+            }
+            if (type === 'settings') { document.getElementById('settingsBirthDate').value = lifePlan.birthDate; document.getElementById('settingsExpectedAge').value = lifePlan.expectedAge; }
+        };
+        window.closeModal = (id) => { document.getElementById(id + 'Modal').style.display = 'none'; };
+        window.toggleExpand = async (id) => { const t = data.find(x => x.id === id.toString()); await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id.toString()), { isExpanded: !t.isExpanded }); };
+
+        function getCategoryStyles(cat) {
+            const map = { '美容・健康': 'bg-rose-100 text-rose-700 border-rose-200', '資産管理': 'bg-emerald-100 text-emerald-700 border-emerald-200', '通院': 'bg-blue-100 text-blue-700 border-blue-200', '仕事': 'bg-indigo-100 text-indigo-700 border-indigo-200' };
+            if (map[cat]) return map[cat];
+            const colors = ['bg-amber-100 text-amber-700 border-amber-200', 'bg-purple-100 text-purple-700 border-purple-200', 'bg-teal-100 text-teal-700 border-teal-200'];
+            let hash = 0; for (let i = 0; i < cat.length; i++) hash = cat.charCodeAt(i) + ((hash << 5) - hash);
+            return colors[Math.abs(hash) % colors.length];
+        }
+
         function render() {
             const tabs = [{id:'day',l:'今日'},{id:'year',l:'今年'},{id:'life',l:'人生'},...(lifePlan.goals||[]).map(g=>({id:g.id,l:g.title}))];
             document.getElementById('dashboardTabs').innerHTML = tabs.map(t => `<button onclick="dashboardTab='${t.id}';render()" class="text-[10px] font-black px-2 pb-1 whitespace-nowrap transition-all ${dashboardTab === t.id ? 'text-sky-400 border-b-2 border-sky-400':'text-slate-400'}">${t.l}</button>`).join('');
-            
             const content = document.getElementById('dashboardContent'); const now = new Date(), birth = new Date(lifePlan.birthDate);
             let percent = 0, title = "", mainVal = "", subVal = "", colorClass = "stroke-sky-500", timePercent = -1, isGoal = false;
-
             if (dashboardTab === 'day') { 
                 const sec = (now.getHours()*3600 + now.getMinutes()*60 + now.getSeconds()); percent = Math.floor(((86400-sec)/86400)*100); title="今日"; mainVal=`残り ${Math.floor((86400-sec)/3600)}時 ${Math.floor((86400-sec)%3600/60)}分`; subVal=`消費 ${100-percent}%経過`;
             } else if (dashboardTab === 'year') {
@@ -282,51 +331,34 @@
                     colorClass = (nP >= timePercent) ? "stroke-emerald-500" : "stroke-rose-500";
                 }
             }
-
             const r = 45, circ = 2 * Math.PI * r, offset = circ - (percent/100)*circ;
-            content.innerHTML = `
-                <div class="relative inline-block font-black">
-                    <svg width="110" height="110" class="circle-progress"><circle cx="55" cy="55" r="${r}" stroke="#1e293b" stroke-width="12" fill="transparent" /><circle cx="55" cy="55" r="${r}" class="progress-indicator ${colorClass}" stroke-width="12" stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round" fill="transparent" /></svg>
-                    <div class="absolute inset-0 flex flex-col items-center justify-center text-white"><span class="text-xl font-black">${percent}%</span><span class="text-[8px] text-slate-400 uppercase tracking-widest">${isGoal && timePercent >= 0 ? '経過' : '残り'}</span></div>
-                </div>
-                <div class="mt-6 text-center font-black"><p class="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">${title}</p><h2 class="text-lg font-black tracking-tighter mb-1">${mainVal}</h2><p class="text-xs font-bold text-slate-400 bg-white/5 py-1.5 px-3 rounded-xl inline-block border border-white/10">${subVal}</p></div>`;
+            content.innerHTML = `<div class="relative inline-block font-black"><svg width="110" height="110" class="circle-progress"><circle cx="55" cy="55" r="${r}" stroke="#1e293b" stroke-width="12" fill="transparent" /><circle cx="55" cy="55" r="${r}" class="progress-indicator ${colorClass}" stroke-width="12" stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round" fill="transparent" /></svg><div class="absolute inset-0 flex flex-col items-center justify-center text-white"><span class="text-xl font-black">${percent}%</span><span class="text-[8px] text-slate-400 uppercase tracking-widest">${isGoal && timePercent >= 0 ? '経過' : '残り'}</span></div></div><div class="mt-6 text-center font-black"><p class="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">${title}</p><h2 class="text-lg font-black tracking-tighter mb-1">${mainVal}</h2><p class="text-xs font-bold text-slate-400 bg-white/5 py-1.5 px-3 rounded-xl inline-block border border-white/10">${subVal}</p></div>`;
 
             const categories = ['すべて', ...new Set(data.map(t => t.category))].sort();
-            document.getElementById('categoryTabs').innerHTML = categories.map(cat => `<button onclick="selectedCategory='${cat}';render()" class="px-3 py-1.5 rounded-full text-[10px] font-black whitespace-nowrap transition ${selectedCategory === cat ? 'bg-slate-800 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200'}">${cat}</button>`).join('');
-
+            document.getElementById('categoryTabs').innerHTML = categories.map(cat => `<button onclick="selectedCategory='${cat}';render()" class="px-3 py-1.5 rounded-full text-[10px] font-black whitespace-nowrap transition ${selectedCategory === cat ? 'bg-slate-800 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200'} font-black">${cat}</button>`).join('');
             const container = document.getElementById('mainContainer'); container.innerHTML = '';
             const filtered = data.filter(t => (selectedCategory === 'すべて' || t.category === selectedCategory) && (t.title.toLowerCase().includes(searchQuery) || t.logs.some(l => l.memo?.toLowerCase().includes(searchQuery))));
             
             filtered.forEach(t => {
                 const rel = t.logs[0] ? formatRelativeTime(t.logs[0].timestamp) : null;
-                const card = document.createElement('div'); card.className = `rounded-2xl shadow-md border flex flex-col transition-all bg-white border-slate-300`;
-                let timelineHTML = t.isExpanded ? `<div class="px-6 pb-6 pt-2 space-y-3 relative"><div class="timeline-line"></div>${t.logs.map((l, i) => {
+                const alerting = rel && t.alertDays > 0 && ((rel.isFuture && Math.abs(rel.totalDays) <= t.alertDays) || (!rel.isFuture && Math.abs(rel.totalDays) >= t.alertDays));
+                let bg = 'bg-white border-slate-300';
+                if (t.color && t.color !== 'default') { const p = { indigo: 'bg-indigo-50 border-indigo-200', orange: 'bg-orange-50 border-orange-200', emerald: 'bg-emerald-50 border-emerald-200', rose: 'bg-rose-50 border-rose-200' }; bg = p[t.color] || bg; }
+                const card = document.createElement('div'); card.className = `rounded-2xl shadow-md border flex flex-col transition-all ${bg} ${alerting ? 'ring-2 ring-red-500' : ''}`;
+                let timelineHTML = t.isExpanded ? `<div class="px-6 pb-6 pt-2 space-y-3 relative font-black"><div class="timeline-line"></div>${t.logs.map((l, i) => {
                     const lRel = formatRelativeTime(l.timestamp); const imgs = Array.isArray(l.image) ? l.image : (l.image ? [l.image] : []);
-                    return `<div class="relative pl-8 group"><div class="timeline-dot"></div><div class="flex justify-between items-start"><div class="flex-1 cursor-pointer" onclick="openModal('log', '${t.id}', ${l.id})"><div class="flex items-center gap-2 mb-0.5"><span class="text-[9px] font-black px-1.5 py-0.5 rounded text-white ${lRel.isFuture ? 'bg-orange-600' : 'bg-indigo-800'}">${lRel.text}</span><span class="text-[9px] text-slate-500 font-bold">${new Date(l.timestamp).toLocaleDateString()}</span></div><p class="text-[10px] text-slate-700 mt-1">${l.memo || "メモなし"}</p><div class="flex flex-wrap gap-2 mt-1.5">${imgs.map(img => `<img src="${img}" onclick="event.stopPropagation(); zoomImage('${img}')" class="w-20 h-20 object-cover rounded shadow-sm border-2 border-white">`).join('')}</div></div><button onclick="deleteLog('${t.id}', ${l.id})" class="p-1.5 text-slate-400 hover:text-rose-500">×</button></div></div>`;
+                    return `<div class="relative pl-8 group"><div class="timeline-dot"></div><div class="flex justify-between items-start"><div class="flex-1 cursor-pointer font-black" onclick="openModal('log', '${t.id}', ${l.id})"><div class="flex items-center gap-2 mb-0.5"><span class="text-[9px] font-black px-1.5 py-0.5 rounded text-white ${lRel.isFuture ? 'bg-orange-600' : 'bg-indigo-800'}">${lRel.text}</span><span class="text-[9px] text-slate-500 font-bold">${new Date(l.timestamp).toLocaleDateString()}</span></div><p class="text-[10px] text-slate-700 mt-1 font-black">${l.memo || "メモなし"}</p><div class="flex flex-wrap gap-2 mt-1.5">${imgs.map(img => `<img src="${img}" onclick="event.stopPropagation(); zoomImage('${img}')" class="w-20 h-20 object-cover rounded shadow-sm border-2 border-white">`).join('')}</div></div><button onclick="deleteLog('${t.id}', ${l.id})" class="p-1.5 text-slate-400 hover:text-rose-500 transition-colors">×</button></div></div>`;
                 }).join('')}</div>` : '';
-
-                card.innerHTML = `<div class="py-2.5 px-4 flex items-center justify-between cursor-pointer" onclick="toggleExpand('${t.id}')">
-                    <div class="flex-1 min-w-0 mr-3"><div class="flex items-center gap-1.5 mb-1"><span class="text-[8px] font-black uppercase px-1.5 py-0.5 rounded border ${getCategoryStyles(t.category)}">${t.category}</span>${rel ? `<span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-800 text-white">${rel.text}</span>` : ''}</div><h2 class="text-base font-bold text-slate-800 leading-tight">${t.title} <span class="text-xs font-normal text-slate-400">(${t.logs.length})</span></h2></div>
-                    <div class="flex items-center gap-1 shrink-0" onclick="event.stopPropagation()">
-                        <button onclick="openModal('log', '${t.id}')" class="px-2 py-1 text-[9px] bg-sky-100 text-sky-700 rounded-md border border-sky-200 font-black shadow-sm">+記録</button>
-                        <button onclick="openModal('timer', '${t.id}')" class="p-1.5 text-slate-400">✎</button>
-                        <button onclick="deleteTimer('${t.id}')" class="p-1.5 text-slate-400">🗑</button>
-                    </div></div>${timelineHTML}`;
+                card.innerHTML = `<div class="py-2.5 px-4 flex items-center justify-between cursor-pointer" onclick="toggleExpand('${t.id}')"><div class="flex-1 min-w-0 mr-3 font-black"><div class="flex items-center gap-1.5 mb-1"><span class="text-[8px] font-black uppercase px-1.5 py-0.5 rounded border ${getCategoryStyles(t.category)}">${t.category}</span>${rel ? `<span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-800 text-white font-black">${rel.text}</span>` : ''}</div><h2 class="text-base font-bold text-slate-800 leading-tight font-black">${t.title} <span class="text-xs font-normal text-slate-400 font-black">(${t.logs.length})</span></h2></div><div class="flex items-center gap-1 shrink-0 font-black" onclick="event.stopPropagation()"><button onclick="openModal('log', '${t.id}')" class="px-2 py-1 text-[9px] bg-sky-100 text-sky-700 rounded-md border border-sky-200 font-black shadow-sm">+記録</button><button onclick="openModal('timer', '${t.id}')" class="p-1.5 text-slate-400 hover:text-slate-600 transition font-black">✎</button><button onclick="deleteTimer('${t.id}')" class="p-1.5 text-slate-400 hover:text-rose-500 transition font-black">🗑</button></div></div>${timelineHTML}`;
                 container.appendChild(card);
             });
         }
         setInterval(() => render(), 1000);
         window.zoomImage = (src) => { document.getElementById('imageModalContent').src = src; document.getElementById('imageModal').style.display = 'flex'; };
-        window.closeModal = (id) => { document.getElementById(id + 'Modal').style.display = 'none'; };
-        window.openModal = (type, id = null, logId = null) => { 
-            const m = document.getElementById(type + 'Modal'); m.style.display = 'flex'; currentEditingTimerId = id; currentEditingLogId = logId;
-            if (type === 'log') { currentSelectedPhotosBase64 = []; updatePhotoPreviews(); }
-        };
-        window.toggleExpand = async (id) => { const t = data.find(x => x.id === id.toString()); await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id.toString()), { isExpanded: !t.isExpanded }); };
         window.addNewGoalRow = () => {
             const container = document.getElementById('goalRowsContainer'); const id = 'g' + Date.now();
-            const div = document.createElement('div'); div.className = "p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-4 relative goal-row font-black"; div.dataset.id = id;
-            div.innerHTML = `<button onclick="this.parentElement.remove()" class="absolute top-3 right-3 text-slate-300">×</button><input type="text" placeholder="目標名" class="w-full border-b border-slate-300 py-1 outline-none text-sm bg-transparent goal-title-input"><div class="grid grid-cols-3 gap-2"><div><label class="text-[9px] text-slate-400">開始</label><input type="number" class="w-full border p-1 text-xs goal-start-val-input"></div><div><label class="text-[9px] text-slate-400">現在</label><input type="number" class="w-full border p-1 text-xs goal-current-val-input"></div><div><label class="text-[9px] text-slate-400 text-sky-500">目標</label><input type="number" class="w-full border p-1 text-xs goal-target-val-input"></div></div><div class="grid grid-cols-2 gap-2"><div><label class="text-[9px] text-slate-400">開始日</label><input type="date" class="w-full text-[10px] goal-start-date-input"></div><div><label class="text-[9px] text-slate-400 text-rose-400">達成期限</label><input type="date" class="w-full text-[10px] goal-end-date-input"></div></div><input type="text" placeholder="単位" class="w-16 border-b text-xs goal-unit-input">`;
+            const div = document.createElement('div'); div.className = "p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-4 relative goal-row font-black shadow-sm"; div.dataset.id = id;
+            div.innerHTML = `<button onclick="this.parentElement.remove()" class="absolute top-3 right-3 text-slate-300">×</button><input type="text" placeholder="目標名" class="w-full border-b border-slate-300 py-1 outline-none text-sm bg-transparent goal-title-input font-black"><div class="grid grid-cols-3 gap-2"><div><label class="text-[9px] text-slate-400">開始</label><input type="number" class="w-full border p-1 text-xs goal-start-val-input"></div><div><label class="text-[9px] text-slate-400">現在</label><input type="number" class="w-full border p-1 text-xs goal-current-val-input"></div><div><label class="text-[9px] text-slate-400 text-sky-500">目標</label><input type="number" class="w-full border p-1 text-xs goal-target-val-input"></div></div><div class="grid grid-cols-2 gap-2"><div><label class="text-[9px] text-slate-400">開始日</label><input type="date" class="w-full text-[10px] goal-start-date-input"></div><div><label class="text-[9px] text-slate-400 text-rose-400">達成期限</label><input type="date" class="w-full text-[10px] goal-end-date-input"></div></div><input type="text" placeholder="単位" class="w-16 border-b text-xs goal-unit-input">`;
             container.appendChild(div);
         };
     </script>
