@@ -22,7 +22,6 @@
     </style>
 </head>
 <body class="text-slate-900 pb-24">
-    <!-- Login Overlay -->
     <div id="loginOverlay" class="fixed inset-0 bg-white z-[200] flex items-center justify-center p-6 hidden">
         <div class="max-w-sm w-full text-center">
             <h1 class="text-3xl font-black tracking-tighter text-slate-800 mb-2 font-black">Timeline Since</h1>
@@ -45,7 +44,6 @@
                     <button onclick="handleLogout()" class="text-[10px] text-slate-400 hover:text-red-500 underline font-bold">ログアウト</button>
                 </div>
 
-                <!-- Dashboard Section -->
                 <div class="bg-slate-900 rounded-3xl p-6 mb-6 shadow-2xl relative border-t border-white/10 text-white font-black">
                     <button onclick="openModal('settings')" class="absolute top-4 right-4 text-slate-500 hover:text-white transition z-10">
                         <svg class="w-5 h-5 font-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -54,7 +52,6 @@
                     <div id="dashboardContent" class="text-center py-2 flex flex-col items-center min-h-[170px] justify-center font-black"></div>
                 </div>
 
-                <!-- Main Buttons -->
                 <div class="flex gap-2 items-center mb-6 font-black">
                     <button onclick="openModal('timer')" class="flex-1 bg-sky-500 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all">新規作成</button>
                     <button onclick="exportJSON()" class="p-3 bg-slate-800 text-white rounded-xl shadow-lg active:scale-95 transition-all" title="JSON保存">
@@ -66,7 +63,6 @@
                     </label>
                 </div>
 
-                <!-- Search and Filters -->
                 <div class="mb-4 relative font-black">
                     <input type="text" id="globalSearchInput" oninput="handleSearch(this.value)" placeholder="タイトル、カテゴリ、メモで検索..." class="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-10 text-sm outline-none focus:ring-2 focus:ring-sky-100 transition-all font-bold shadow-sm">
                     <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3 font-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -85,7 +81,6 @@
         </div>
     </div>
 
-    <!-- Bulk Action Bar -->
     <div id="bulkActionBar" class="fixed bottom-0 left-0 right-0 bg-slate-900 text-white p-4 shadow-2xl z-[150] translate-y-full bulk-bar border-t border-white/10 font-black">
         <div class="max-w-xl mx-auto flex items-center justify-between gap-3 font-black">
             <div class="flex items-center gap-3 font-black">
@@ -100,7 +95,6 @@
         </div>
     </div>
 
-    <!-- Modals -->
     <div id="timerModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[100] backdrop-blur-sm font-black">
         <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl text-left">
             <h3 class="text-lg font-bold mb-4 text-slate-800 font-black">タイマー設定</h3>
@@ -120,7 +114,6 @@
         </div>
     </div>
 
-    <!-- Bulk Category Modal -->
     <div id="bulkCategoryModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-[200] backdrop-blur-sm font-black font-black"><div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl text-left font-black"><h3 class="text-lg font-bold mb-4 text-slate-800 font-black">一括カテゴリー変更</h3><div class="space-y-4 font-black"><div><label class="text-[10px] font-black text-slate-400 uppercase tracking-wider text-black font-black">新カテゴリー名</label><input type="text" id="bulkCategoryInput" list="existingCategories" class="w-full border-b-2 border-slate-100 py-2 outline-none text-sm font-bold font-black"></div><div class="flex gap-2 pt-2 font-black"><button onclick="closeModal('bulkCategory')" class="flex-1 py-3 text-slate-500 font-bold">中止</button><button onclick="applyBulkCategory()" class="flex-1 py-3 bg-indigo-500 text-white rounded-xl font-bold shadow-lg">一括適用</button></div></div></div></div>
     <div id="bulkColorModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-[200] backdrop-blur-sm font-black font-black"><div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl text-left font-black"><h3 class="text-lg font-bold mb-4 text-slate-800 font-black">一括背景色変更</h3><div class="space-y-4 font-black"><div class="flex gap-2.5 mt-2 flex-wrap font-black" id="bulkColorPicker"><div class="color-dot active bg-white border-slate-400" data-color="default"></div><div class="color-dot bg-white border-slate-200 shadow-inner" data-color="white"></div><div class="color-dot bg-indigo-200" data-color="indigo"></div><div class="color-dot bg-orange-200" data-color="orange"></div><div class="color-dot bg-emerald-200" data-color="emerald"></div><div class="color-dot bg-rose-200" data-color="rose"></div></div><div class="flex gap-2 pt-2 font-black"><button onclick="closeModal('bulkColor')" class="flex-1 py-3 text-slate-500 font-bold">中止</button><button onclick="applyBulkColor()" class="flex-1 py-3 bg-emerald-500 text-white rounded-xl font-bold shadow-lg">一括適用</button></div></div></div></div>
 
@@ -389,7 +382,7 @@
                 
                 let timelineHTML = t.isExpanded ? `<div class="px-6 pb-6 pt-2 space-y-3 relative font-black font-black"><div class="timeline-line font-black"></div>${t.logs.map((l, i) => {
                     const lRel = formatRelativeTime(l.timestamp, nowTime); const imgs = Array.isArray(l.image) ? l.image : (l.image ? [l.image] : []);
-                    return `<div class="relative pl-8 group font-black font-black"><div class="timeline-dot font-black font-black"></div><div class="flex justify-between items-start"><div class="flex-1 cursor-pointer font-black" onclick="openModal('log', '${t.id}', ${l.id})"><div class="flex items-center gap-2 mb-0.5 font-black"><span class="text-[9px] font-black px-1.5 py-0.5 rounded text-white ${lRel.isFuture ? 'bg-orange-600' : 'bg-indigo-800'}">${lRel.text}</span><span class="text-[9px] text-slate-500 font-bold">${new Date(l.timestamp).toLocaleDateString()}</span></div><p class="text-[10px] text-slate-700 mt-1 font-black font-black">${l.memo || "メモなし"}</p><div class="flex flex-wrap gap-2 mt-1.5 font-black">${imgs.map(img => `<img src="${img}" onclick="event.stopPropagation(); zoomImage('${img}')" class="w-20 h-20 object-cover rounded shadow-sm border-2 border-white">`).join('')}</div></div><button onclick="deleteLog('${t.id}', ${l.id})" class="p-1.5 text-slate-400 hover:text-rose-500 transition-colors font-black">×</button></div></div>`;
+                    return `<div class="relative pl-8 group font-black font-black"><div class="timeline-dot font-black font-black"></div><div class="flex justify-between items-start"><div class="flex-1 cursor-pointer font-black" onclick="openModal('log', '${t.id}', ${l.id})"><div class="flex items-center gap-2 mb-0.5 font-black"><span class="text-[9px] font-black px-1.5 py-0.5 rounded text-white ${lRel.isFuture ? 'bg-orange-600' : 'bg-indigo-800'}">${lRel.text}</span><span class="text-[9px] text-slate-500 font-bold">${new Date(l.timestamp).toLocaleDateString()}</span></div><p class="text-[10px] text-slate-700 mt-1 font-black font-black" style="white-space: pre-wrap;">${l.memo || "メモなし"}</p><div class="flex flex-wrap gap-2 mt-1.5 font-black">${imgs.map(img => `<img src="${img}" onclick="event.stopPropagation(); zoomImage('${img}')" class="w-20 h-20 object-cover rounded shadow-sm border-2 border-white">`).join('')}</div></div><button onclick="deleteLog('${t.id}', ${l.id})" class="p-1.5 text-slate-400 hover:text-rose-500 transition-colors font-black">×</button></div></div>`;
                 }).join('')}</div>` : '';
                 
                 card.innerHTML = `<div class="flex items-center font-black"><div class="py-2.5 px-4 flex items-center justify-between cursor-pointer flex-1 font-black font-black" onclick="toggleExpand('${t.id}')">
