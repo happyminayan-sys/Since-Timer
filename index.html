@@ -9,8 +9,8 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
         .mono { font-family: 'JetBrains Mono', monospace; }
-        .timeline-line { position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background-color: #cbd5e1; }
-        .timeline-dot { position: absolute; left: 0; top: 8px; width: 16px; height: 16px; background-color: #0ea5e9; border: 3px solid #fff; border-radius: 50%; z-index: 10; }
+        .timeline-line { position: absolute; left: 15px; top: 0; bottom: 0; width: 2px; background-color: #cbd5e1; }
+        .timeline-dot { position: absolute; left: 8px; top: 8px; width: 16px; height: 16px; background-color: #0ea5e9; border: 3px solid #fff; border-radius: 50%; z-index: 10; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .img-preview { max-height: 120px; object-fit: cover; border-radius: 8px; }
@@ -96,18 +96,24 @@
     </div>
 
     <div id="timerModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[100] backdrop-blur-sm font-black">
-        <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl text-left">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl text-left overflow-y-auto max-h-[90vh] no-scrollbar">
             <h3 class="text-lg font-bold mb-4 text-slate-800 font-black">タイマー設定</h3>
             <div class="space-y-4 font-black font-black">
                 <div><label class="text-[10px] font-black text-slate-400 uppercase tracking-wider text-black font-black">カテゴリ</label><input type="text" id="newTimerCategory" list="existingCategories" class="w-full border-b-2 border-slate-100 py-1 outline-none text-sm font-bold font-black"><datalist id="existingCategories"></datalist></div>
                 <div><label class="text-[10px] font-black text-slate-400 uppercase tracking-wider text-black font-black">タイトル</label><input type="text" id="newTimerTitle" class="w-full border-b-2 border-slate-100 py-1 outline-none text-sm font-bold font-black"></div>
                 <div class="flex gap-4 font-black">
                     <div class="flex-1 font-black"><label class="text-[10px] font-black text-slate-400 uppercase tracking-wider text-black font-black">背景色</label><div class="flex gap-2.5 mt-2 flex-wrap font-black" id="colorPicker"><div class="color-dot active bg-white border-slate-400" data-color="default"></div><div class="color-dot bg-white border-slate-200 shadow-inner" data-color="white"></div><div class="color-dot bg-indigo-200" data-color="indigo"></div><div class="color-dot bg-orange-200" data-color="orange"></div><div class="color-dot bg-emerald-200" data-color="emerald"></div><div class="color-dot bg-rose-200" data-color="rose"></div></div></div>
-                    <div class="w-24 font-black"><label class="text-[10px] font-black text-slate-400 uppercase tracking-wider text-black text-center font-black">アラート(日)</label><input type="number" id="newTimerAlertDays" placeholder="0" class="w-full border-b-2 border-slate-100 py-1 outline-none text-sm text-center font-bold"></div>
+                    <div class="w-24 font-black"><label class="text-[10px] font-black text-slate-400 uppercase tracking-wider text-black text-center font-black">ｱﾗｰﾄ(日前に通知)</label><input type="number" id="newTimerAlertDays" placeholder="0" class="w-full border-b-2 border-slate-100 py-1 outline-none text-sm text-center font-bold"></div>
                 </div>
                 <div id="initialDateGroup" class="font-black">
                     <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider text-black font-black">初回日付</label>
                     <input type="date" id="newTimerInitialDate" class="w-full border-b-2 border-slate-100 py-1 outline-none text-sm font-medium font-black font-black">
+                    <div class="mt-4 font-black"><label class="text-[10px] font-black text-slate-400 uppercase tracking-wider text-black font-black">初回メモ</label><textarea id="newTimerMemo" class="w-full border rounded-lg p-2 text-sm h-20 resize-none border-slate-200 outline-none font-medium focus:ring-2 focus:ring-sky-100 font-black" placeholder="メモを入力..."></textarea></div>
+                    <div class="grid grid-cols-2 gap-2 mt-4 font-black">
+                        <label class="flex flex-col items-center justify-center gap-1 py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 cursor-pointer hover:bg-slate-50 transition font-black"><span class="text-[10px] font-bold font-black">撮影</span><input type="file" class="hidden" accept="image/*" capture="environment" onchange="handlePhotoSelect(event)" multiple></label>
+                        <label class="flex flex-col items-center justify-center gap-1 py-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 cursor-pointer hover:bg-slate-50 transition font-black"><span class="text-[10px] font-bold font-black">選択</span><input type="file" class="hidden" accept="image/*" onchange="handlePhotoSelect(event)" multiple></label>
+                    </div>
+                    <div id="newTimerPhotoPreviewContainer" class="hidden flex flex-wrap gap-2 mt-2 relative font-black"></div>
                 </div>
                 <div class="flex gap-2 pt-2 font-black"><button onclick="closeModal('timer')" class="flex-1 py-3 text-slate-500 font-bold">中止</button><button id="timerSubmitBtn" class="flex-1 py-3 bg-slate-800 text-white rounded-xl font-bold shadow-lg">保存</button></div>
             </div>
@@ -234,9 +240,10 @@
         };
 
         window.updatePhotoPreviews = () => {
-            const container = document.getElementById('photoPreviewContainer');
-            container.innerHTML = currentSelectedPhotosBase64.map((img, idx) => `<div class="relative w-20 h-20 mb-2"><img src="${img}" class="w-full h-full object-cover rounded-lg border shadow-inner"><button onclick="removeSelectedPhoto(${idx})" class="absolute -top-1 -right-1 bg-black/50 text-white rounded-full p-0.5">×</button></div>`).join('');
-            container.classList.toggle('hidden', currentSelectedPhotosBase64.length === 0);
+            const html = currentSelectedPhotosBase64.map((img, idx) => `<div class="relative w-20 h-20 mb-2"><img src="${img}" class="w-full h-full object-cover rounded-lg border shadow-inner"><button onclick="removeSelectedPhoto(${idx})" class="absolute -top-1 -right-1 bg-black/50 text-white rounded-full p-0.5">×</button></div>`).join('');
+            const c1 = document.getElementById('photoPreviewContainer'); const c2 = document.getElementById('newTimerPhotoPreviewContainer');
+            if(c1) { c1.innerHTML = html; c1.classList.toggle('hidden', currentSelectedPhotosBase64.length === 0); }
+            if(c2) { c2.innerHTML = html; c2.classList.toggle('hidden', currentSelectedPhotosBase64.length === 0); }
         };
         window.removeSelectedPhoto = (idx) => { currentSelectedPhotosBase64.splice(idx, 1); updatePhotoPreviews(); };
 
@@ -254,7 +261,7 @@
 
         window.createTimer = async () => {
             const nid = Date.now().toString();
-            const nt = { id: nid, title: document.getElementById('newTimerTitle').value.trim(), category: document.getElementById('newTimerCategory').value.trim() || '未分類', color: currentSelectedColor, alertDays: parseInt(document.getElementById('newTimerAlertDays').value) || 0, isExpanded: false, logs: [{ id: Date.now()+1, timestamp: new Date(document.getElementById('newTimerInitialDate').value).getTime(), memo: "" }] };
+            const nt = { id: nid, title: document.getElementById('newTimerTitle').value.trim(), category: document.getElementById('newTimerCategory').value.trim() || '未分類', color: currentSelectedColor, alertDays: parseInt(document.getElementById('newTimerAlertDays').value) || 0, isExpanded: false, logs: [{ id: Date.now()+1, timestamp: new Date(document.getElementById('newTimerInitialDate').value).getTime(), memo: document.getElementById('newTimerMemo').value.trim(), image: [...currentSelectedPhotosBase64] }] };
             await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', nid), nt); closeModal('timer');
         };
 
@@ -296,6 +303,8 @@
                 } else {
                     document.getElementById('newTimerTitle').value = ""; document.getElementById('newTimerCategory').value = "";
                     document.getElementById('newTimerAlertDays').value = 0; currentSelectedColor = 'default';
+                    document.getElementById('newTimerMemo').value = "";
+                    currentSelectedPhotosBase64 = []; updatePhotoPreviews();
                     document.getElementById('initialDateGroup').classList.remove('hidden');
                 }
                 document.getElementById('timerSubmitBtn').onclick = id ? async () => {
@@ -316,7 +325,7 @@
         window.toggleExpand = async (id) => { const t = data.find(x => x.id === id.toString()); await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id.toString()), { isExpanded: !t.isExpanded }); };
         window.setAllExpand = async (expanded) => { if (!user) return; const filtered = selectedCategory === 'すべて' ? data : data.filter(t => t.category === selectedCategory); const updates = filtered.map(t => updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', t.id), { isExpanded: expanded })); await Promise.all(updates); };
 
-        function exportJSON() { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })); a.download = `timeline_backup.json`; a.click(); }
+        window.exportJSON = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })); a.download = `timeline_backup.json`; a.click(); };
         window.importJSON = async (e) => { if (!user) return; const f = e.target.files[0]; if (!f || !confirm("既存データに統合されます。")) return; const text = await f.text(); try { const imported = JSON.parse(text); if (Array.isArray(imported)) { for (const t of imported) { const nid = (t.id || Date.now()).toString(); await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', nid), t); } alert('完了'); } } catch (err) { alert('不備'); } };
 
         function getCategoryStyles(cat) {
@@ -382,7 +391,9 @@
                 
                 let timelineHTML = t.isExpanded ? `<div class="px-6 pb-6 pt-2 space-y-3 relative font-black font-black"><div class="timeline-line font-black"></div>${t.logs.map((l, i) => {
                     const lRel = formatRelativeTime(l.timestamp, nowTime); const imgs = Array.isArray(l.image) ? l.image : (l.image ? [l.image] : []);
-                    return `<div class="relative pl-8 group font-black font-black"><div class="timeline-dot font-black font-black"></div><div class="flex justify-between items-start"><div class="flex-1 cursor-pointer font-black" onclick="openModal('log', '${t.id}', ${l.id})"><div class="flex items-center gap-2 mb-0.5 font-black"><span class="text-[9px] font-black px-1.5 py-0.5 rounded text-white ${lRel.isFuture ? 'bg-orange-600' : 'bg-indigo-800'}">${lRel.text}</span><span class="text-[9px] text-slate-500 font-bold">${new Date(l.timestamp).toLocaleDateString()}</span></div><p class="text-[10px] text-slate-700 mt-1 font-black font-black" style="white-space: pre-wrap;">${l.memo || "メモなし"}</p><div class="flex flex-wrap gap-2 mt-1.5 font-black">${imgs.map(img => `<img src="${img}" onclick="event.stopPropagation(); zoomImage('${img}')" class="w-20 h-20 object-cover rounded shadow-sm border-2 border-white">`).join('')}</div></div><button onclick="deleteLog('${t.id}', ${l.id})" class="p-1.5 text-slate-400 hover:text-rose-500 transition-colors font-black">×</button></div></div>`;
+                    const nextL = t.logs[i+1];
+                    const diffHTML = nextL ? (() => { const td = Math.floor((l.timestamp - nextL.timestamp) / 86400000); return `<div class="ml-[-12px] my-1 text-[7px] font-black text-slate-400 bg-white/90 px-1 rounded-full z-20 border border-slate-50 whitespace-nowrap w-fit">${Math.floor(td/7)}週${td%7}日(${td}日)</div>`; })() : "";
+                    return `<div class="relative pl-6 group font-black font-black"><div class="timeline-dot font-black font-black"></div><div class="flex justify-between items-start"><div class="flex-1 cursor-pointer font-black" onclick="openModal('log', '${t.id}', ${l.id})"><div class="flex items-center gap-2 mb-0.5 font-black"><span class="text-[9px] font-black px-1.5 py-0.5 rounded text-white ${lRel.isFuture ? 'bg-orange-600' : 'bg-indigo-800'}">${lRel.text}</span><span class="text-[9px] text-slate-500 font-bold">${new Date(l.timestamp).toLocaleDateString()}</span></div>${diffHTML}<p class="text-[10px] text-slate-700 mt-1 ml-1 font-black font-black" style="white-space: pre-wrap;">${l.memo || "メモなし"}</p><div class="flex flex-wrap gap-2 mt-1.5 font-black">${imgs.map(img => `<img src="${img}" onclick="event.stopPropagation(); zoomImage('${img}')" class="w-20 h-20 object-cover rounded shadow-sm border-2 border-white">`).join('')}</div></div><button onclick="deleteLog('${t.id}', ${l.id})" class="p-1.5 text-slate-400 hover:text-rose-500 transition-colors font-black">×</button></div></div>`;
                 }).join('')}</div>` : '';
                 
                 card.innerHTML = `<div class="flex items-center font-black"><div class="py-2.5 px-4 flex items-center justify-between cursor-pointer flex-1 font-black font-black" onclick="toggleExpand('${t.id}')">
