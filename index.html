@@ -156,6 +156,17 @@
     <div id="deleteModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-[150] backdrop-blur-sm font-black"><div class="bg-white rounded-2xl w-full max-w-xs p-6 shadow-2xl text-center font-black"><h3 class="text-lg font-bold text-slate-800 mb-2 font-black">削除確認</h3><div class="flex gap-2 mt-6 font-black"><button onclick="closeModal('delete')" class="flex-1 py-3 text-slate-500 font-bold">中止</button><button id="deleteExecuteBtn" class="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold active:scale-95 transition">完全に削除</button></div></div></div>
     <div id="imageModal" class="fixed inset-0 bg-black/90 hidden items-center justify-center p-4 z-[250] font-black font-black" onclick="closeModal('image')"><img id="imageModalContent" class="max-w-full max-h-full rounded-lg shadow-2xl font-black"></div>
 
+    <!-- 保存中オーバーレイ (z-[300]: 全モーダルの前面) -->
+    <div id="savingOverlay" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-[300] backdrop-blur-sm">
+        <div class="bg-white rounded-2xl px-10 py-8 shadow-2xl flex flex-col items-center gap-4">
+            <svg class="animate-spin w-8 h-8 text-sky-500" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+            </svg>
+            <p class="text-sm font-black text-slate-700">保存中...</p>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
         import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
@@ -168,6 +179,10 @@
         let data = []; let user = null; window.selectedCategory = 'すべて'; let dashboardTab = 'day'; let searchQuery = '';
         let selectedIds = new Set(); let currentSelectedPhotosBase64 = []; let currentSelectedColor = 'default'; let currentEditingTimerId = null; let currentEditingLogId = null;
         let lifePlan = { birthDate: "1967-12-08", expectedAge: 90, goals: [] };
+
+        // --- 保存中オーバーレイ制御 ---
+        function showSaving() { const o = document.getElementById('savingOverlay'); o.classList.remove('hidden'); o.style.display = 'flex'; }
+        function hideSaving() { const o = document.getElementById('savingOverlay'); o.classList.add('hidden'); o.style.display = 'none'; }
 
         onAuthStateChanged(auth, async (u) => {
             user = u; lifePlan = { birthDate: "1967-12-08", expectedAge: 90, goals: [] }; dashboardTab = 'day'; selectedIds.clear();
@@ -214,9 +229,20 @@
         function updateBulkBar() { const bar = document.getElementById('bulkActionBar'); if (selectedIds.size > 0) { bar.classList.remove('translate-y-full'); document.getElementById('bulkCount').innerText = `${selectedIds.size}件選択中`; } else { bar.classList.add('translate-y-full'); } }
 
         window.openBulkCategoryModal = () => { document.getElementById('bulkCategoryModal').style.display = 'flex'; };
-        window.applyBulkCategory = async () => { const newCat = document.getElementById('bulkCategoryInput').value.trim() || '未分類'; const updates = Array.from(selectedIds).map(id => updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id), { categories: [newCat] })); await Promise.all(updates); closeModal('bulkCategory'); clearSelection(); };
+        window.applyBulkCategory = async () => {
+            showSaving();
+            const newCat = document.getElementById('bulkCategoryInput').value.trim() || '未分類';
+            const updates = Array.from(selectedIds).map(id => updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id), { categories: [newCat] }));
+            await Promise.all(updates);
+            hideSaving(); closeModal('bulkCategory'); clearSelection();
+        };
         window.openBulkColorModal = () => { document.getElementById('bulkColorModal').style.display = 'flex'; };
-        window.applyBulkColor = async () => { const updates = Array.from(selectedIds).map(id => updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id), { color: currentSelectedColor })); await Promise.all(updates); closeModal('bulkColor'); clearSelection(); };
+        window.applyBulkColor = async () => {
+            showSaving();
+            const updates = Array.from(selectedIds).map(id => updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id), { color: currentSelectedColor }));
+            await Promise.all(updates);
+            hideSaving(); closeModal('bulkColor'); clearSelection();
+        };
         window.openBulkDeleteModal = () => { document.getElementById('deleteModal').style.display = 'flex'; document.getElementById('deleteExecuteBtn').onclick = async () => { const deletions = Array.from(selectedIds).map(id => deleteDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id))); await Promise.all(deletions); closeModal('delete'); clearSelection(); }; };
 
         window.handlePhotoSelect = (e) => {
@@ -251,28 +277,37 @@
         window.deleteLog = (timerId, logId) => { const m = document.getElementById('deleteModal'); m.style.display = 'flex'; document.getElementById('deleteExecuteBtn').onclick = async () => { const t = data.find(x => x.id === timerId.toString()); await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', t.id), { logs: t.logs.filter(l => l.id !== logId) }); closeModal('delete'); }; };
 
         window.addLog = async () => {
-            if (!user) return; const t = data.find(x => x.id === currentEditingTimerId.toString());
+            if (!user) return;
+            showSaving();
+            const t = data.find(x => x.id === currentEditingTimerId.toString());
             const newLog = { id: currentEditingLogId || Date.now(), timestamp: new Date(document.getElementById('newLogDate').value).getTime(), memo: document.getElementById('newLogMemo').value.trim(), image: currentSelectedPhotosBase64 };
             const logs = currentEditingLogId ? t.logs.map(l => l.id === currentEditingLogId ? newLog : l) : [...t.logs, newLog];
             logs.sort((a,b) => b.timestamp - a.timestamp);
             await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', t.id), { logs, isExpanded: true });
+            hideSaving();
             closeModal('log');
         };
 
         window.createTimer = async () => {
+            showSaving();
             const nid = Date.now().toString();
             const cats = document.getElementById('newTimerCategory').value.split(/[,、]/).map(c => c.trim()).filter(c => c.length > 0);
             const nt = { id: nid, title: document.getElementById('newTimerTitle').value.trim(), categories: cats.length > 0 ? cats : ['未分類'], color: currentSelectedColor, alertDays: parseInt(document.getElementById('newTimerAlertDays').value) || 0, isExpanded: false, logs: [{ id: Date.now()+1, timestamp: new Date(document.getElementById('newTimerInitialDate').value).getTime(), memo: document.getElementById('newTimerMemo').value.trim(), image: [...currentSelectedPhotosBase64] }] };
-            await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', nid), nt); closeModal('timer');
+            await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', nid), nt);
+            hideSaving();
+            closeModal('timer');
         };
 
         window.saveProfileSettings = async () => {
+            showSaving();
             const goals = []; document.querySelectorAll('.goal-row').forEach(row => {
                 const title = row.querySelector('.goal-title-input').value; if (!title) return;
                 goals.push({ id: row.dataset.id, title, unit: row.querySelector('.goal-unit-input').value, startValue: parseFloat(row.querySelector('.goal-start-val-input').value) || 0, current: parseFloat(row.querySelector('.goal-current-val-input').value) || 0, target: parseFloat(row.querySelector('.goal-target-val-input').value) || 0, startDate: row.querySelector('.goal-start-date-input').value, endDate: row.querySelector('.goal-end-date-input').value });
             });
             lifePlan = { ...lifePlan, birthDate: document.getElementById('settingsBirthDate').value, expectedAge: parseInt(document.getElementById('settingsExpectedAge').value), goals };
-            await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'settings', 'config'), lifePlan); closeModal('settings'); render();
+            await setDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'settings', 'config'), lifePlan);
+            hideSaving();
+            closeModal('settings'); render();
         };
 
         window.openModal = (type, id = null, logId = null) => { 
@@ -309,8 +344,11 @@
                     document.getElementById('initialDateGroup').classList.remove('hidden');
                 }
                 document.getElementById('timerSubmitBtn').onclick = id ? async () => {
+                    showSaving();
                     const cats = document.getElementById('newTimerCategory').value.split(/[,、]/).map(c => c.trim()).filter(c => c.length > 0);
-                    await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id.toString()), { title: document.getElementById('newTimerTitle').value.trim(), categories: cats.length > 0 ? cats : ['未分類'], color: currentSelectedColor, alertDays: parseInt(document.getElementById('newTimerAlertDays').value) || 0 }); closeModal('timer');
+                    await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id.toString()), { title: document.getElementById('newTimerTitle').value.trim(), categories: cats.length > 0 ? cats : ['未分類'], color: currentSelectedColor, alertDays: parseInt(document.getElementById('newTimerAlertDays').value) || 0 });
+                    hideSaving();
+                    closeModal('timer');
                 } : createTimer;
             }
             if (type === 'settings') { 
