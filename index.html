@@ -243,7 +243,7 @@
             await Promise.all(updates);
             hideSaving(); closeModal('bulkColor'); clearSelection();
         };
-        window.openBulkDeleteModal = () => { document.getElementById('deleteModal').style.display = 'flex'; document.getElementById('deleteExecuteBtn').onclick = async () => { const deletions = Array.from(selectedIds).map(id => deleteDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id))); await Promise.all(deletions); closeModal('delete'); clearSelection(); }; };
+        window.openBulkDeleteModal = () => { document.getElementById('deleteModal').style.display = 'flex'; document.getElementById('deleteExecuteBtn').onclick = async () => { closeModal('delete'); showSaving(); const deletions = Array.from(selectedIds).map(id => deleteDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id))); await Promise.all(deletions); hideSaving(); clearSelection(); }; };
 
         window.handlePhotoSelect = (e) => {
             const files = Array.from(e.target.files);
@@ -273,8 +273,8 @@
         };
         window.removeSelectedPhoto = (idx) => { currentSelectedPhotosBase64.splice(idx, 1); updatePhotoPreviews(); };
 
-        window.deleteTimer = (id) => { const m = document.getElementById('deleteModal'); m.style.display = 'flex'; document.getElementById('deleteExecuteBtn').onclick = async () => { await deleteDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id.toString())); closeModal('delete'); }; };
-        window.deleteLog = (timerId, logId) => { const m = document.getElementById('deleteModal'); m.style.display = 'flex'; document.getElementById('deleteExecuteBtn').onclick = async () => { const t = data.find(x => x.id === timerId.toString()); await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', t.id), { logs: t.logs.filter(l => l.id !== logId) }); closeModal('delete'); }; };
+        window.deleteTimer = (id) => { const m = document.getElementById('deleteModal'); m.style.display = 'flex'; document.getElementById('deleteExecuteBtn').onclick = async () => { closeModal('delete'); showSaving(); await deleteDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', id.toString())); hideSaving(); }; };
+        window.deleteLog = (timerId, logId) => { const m = document.getElementById('deleteModal'); m.style.display = 'flex'; document.getElementById('deleteExecuteBtn').onclick = async () => { closeModal('delete'); showSaving(); const t = data.find(x => x.id === timerId.toString()); await updateDoc(doc(db, 'artifacts', currentAppId, 'users', user.uid, 'timers', t.id), { logs: t.logs.filter(l => l.id !== logId) }); hideSaving(); }; };
 
         window.addLog = async () => {
             if (!user) return;
